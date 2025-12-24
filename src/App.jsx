@@ -1,0 +1,104 @@
+// ... imports ...
+import React, { Suspense, lazy } from "react";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { HelmetProvider } from "react-helmet-async";
+import { Navbar, Hero, StarsCanvas, Footer } from "./components"; // Keep critical above fold components eager
+import { AuthProvider } from "./context/AuthContext";
+import ErrorBoundary from "./components/ErrorBoundary";
+
+// Lazy Load heavy components
+const About = lazy(() => import("./components/About"));
+const Experience = lazy(() => import("./components/Experience"));
+const Tech = lazy(() => import("./components/Tech"));
+const Works = lazy(() => import("./components/Works"));
+const Feed = lazy(() => import("./components/Feed"));
+const Contact = lazy(() => import("./components/Contact"));
+
+const Login = lazy(() => import("./pages/admin/Login"));
+const Dashboard = lazy(() => import("./pages/admin/Dashboard"));
+const ManageBlogs = lazy(() => import("./pages/admin/ManageBlogs"));
+const ManageTestimonials = lazy(() => import("./pages/admin/ManageTestimonials"));
+const ManageContacts = lazy(() => import("./pages/admin/ManageContacts"));
+const Blogs = lazy(() => import("./pages/Blogs"));
+const BlogDetails = lazy(() => import("./pages/BlogDetails"));
+const ProtectedRoute = lazy(() => import("./components/admin/ProtectedRoute"));
+
+// Legal Pages
+const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
+const RefundPolicy = lazy(() => import("./pages/RefundPolicy"));
+const TermsAndConditions = lazy(() => import("./pages/TermsAndConditions"));
+
+// Public Pages
+const TestimonialsPage = lazy(() => import("./pages/TestimonialsPage"));
+
+// Loading fallback
+const PageLoader = () => (
+  <div className="flex justify-center items-center w-full h-screen bg-primary">
+    <div className="w-20 h-20 border-4 border-secondary border-t-transparent rounded-full animate-spin"></div>
+  </div>
+);
+
+const App = () => {
+  return (
+    <HelmetProvider>
+      <AuthProvider>
+        <BrowserRouter>
+          <div className='relative z-0 bg-primary'>
+            <ErrorBoundary>
+              <Suspense fallback={<PageLoader />}>
+                <Routes>
+                  {/* Public Routes */}
+                  <Route
+                    path='/'
+                    element={
+                      <>
+                        <div className='bg-hero-pattern bg-cover bg-no-repeat bg-center'>
+                          <Navbar />
+                          <Hero />
+                        </div>
+                        <About />
+                        <Experience />
+                        <Tech />
+                        <Works />
+                        <Feed />
+                        <div className='relative z-0'>
+                          <Contact />
+                          <StarsCanvas />
+                        </div>
+                        <Footer />
+                      </>
+                    }
+                  />
+
+                  {/* Legal Routes */}
+                  <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+                  <Route path="/refund-policy" element={<RefundPolicy />} />
+                  <Route path="/terms-and-conditions" element={<TermsAndConditions />} />
+
+                  {/* Admin Routes */}
+                  <Route path="/blog" element={<Blogs />} />
+                  <Route path="/blog/:slug" element={<BlogDetails />} />
+                  <Route path="/testimonials" element={<TestimonialsPage />} />
+
+                  {/* Admin Login - MUST be before ProtectedRoute */}
+                  <Route path="/admin/login" element={<Login />} />
+
+                  <Route path="/admin" element={<ProtectedRoute />}>
+                    <Route index element={<Dashboard />} />
+                    <Route path="dashboard" element={<Dashboard />} />
+                    <Route path="blogs" element={<ManageBlogs />} />
+                    <Route path="testimonials" element={<ManageTestimonials />} />
+                    <Route path="contacts" element={<ManageContacts />} />
+                  </Route>
+
+                </Routes>
+              </Suspense>
+            </ErrorBoundary>
+          </div>
+        </BrowserRouter>
+      </AuthProvider>
+    </HelmetProvider>
+  );
+};
+
+export default App;
