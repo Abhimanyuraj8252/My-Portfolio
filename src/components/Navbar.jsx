@@ -33,20 +33,32 @@ const Navbar = () => {
         }
         setActive(navTitle);
         setToggle(false);
-        
-        if (location.pathname !== '/') {
-            navigate('/', { replace: false });
-            setTimeout(() => {
-                const element = document.getElementById(navId);
-                if (element) {
-                    element.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                }
-            }, 500);
-        } else {
+
+        const scrollToElement = () => {
             const element = document.getElementById(navId);
             if (element) {
                 element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                return true;
             }
+            return false;
+        };
+        
+        if (location.pathname !== '/') {
+            navigate('/', { replace: false });
+            // Poll for the element to exist (handling lazy loading delays)
+            let attempts = 0;
+            const maxAttempts = 100; // 10 seconds max wait
+            const interval = setInterval(() => {
+                if (scrollToElement()) {
+                    clearInterval(interval);
+                }
+                attempts++;
+                if (attempts >= maxAttempts) {
+                    clearInterval(interval);
+                }
+            }, 100);
+        } else {
+            scrollToElement();
         }
     };
 
