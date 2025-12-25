@@ -33,16 +33,15 @@ const Navbar = () => {
             <div className='w-full flex justify-between items-center max-w-7xl mx-auto'>
                 <Link
                     to='/'
-                    className='flex items-center gap-2'
+                    className='flex items-center gap-2 flex-shrink-0'
                     onClick={() => {
                         setActive("");
                         window.scrollTo(0, 0);
                     }}
                 >
-                    <img src={logo} alt="logo" className="w-9 h-9 object-contain" />
-                    <p className='text-white text-[18px] font-bold cursor-pointer flex '>
-                        Abhimanyu &nbsp;
-                        <span className='sm:block hidden'> | Web Developer</span>
+                    <img src={logo} alt="logo" className="w-8 h-8 sm:w-9 sm:h-9 object-contain flex-shrink-0" />
+                    <p className='text-white text-[16px] sm:text-[18px] font-bold cursor-pointer whitespace-nowrap'>
+                        Abhimanyu Raj<span className='hidden md:inline'> | CSE</span>
                     </p>
                 </Link>
 
