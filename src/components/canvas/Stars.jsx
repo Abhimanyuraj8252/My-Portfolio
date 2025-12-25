@@ -1,20 +1,41 @@
-import React, { useState, useRef, Suspense } from "react";
+import React, { useState, useRef, Suspense, useMemo } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
 import { Points, PointMaterial, Preload } from "@react-three/drei";
-import * as random from "maath/random/dist/maath-random.esm";
 
 const Stars = (props) => {
     const ref = useRef();
-    const [sphere] = useState(() => random.inSphere(new Float32Array(5000), { radius: 1.2 }));
+    
+    const sphere = useMemo(() => {
+        const positions = new Float32Array(5001); // 1667 stars * 3 coordinates
+        
+        for (let i = 0; i < positions.length; i += 3) {
+            const radius = Math.random() * 1.2;
+            const theta = Math.random() * Math.PI * 2;
+            const phi = Math.acos((Math.random() * 2) - 1);
+            
+            const x = radius * Math.sin(phi) * Math.cos(theta);
+            const y = radius * Math.sin(phi) * Math.sin(theta);
+            const z = radius * Math.cos(phi);
+            
+            // Ensure no NaN or Infinity values
+            positions[i] = isFinite(x) ? x : 0;
+            positions[i + 1] = isFinite(y) ? y : 0;
+            positions[i + 2] = isFinite(z) ? z : 0;
+        }
+        
+        return positions;
+    }, []);
 
     useFrame((state, delta) => {
-        ref.current.rotation.x -= delta / 10;
-        ref.current.rotation.y -= delta / 15;
+        if (ref.current) {
+            ref.current.rotation.x -= delta / 10;
+            ref.current.rotation.y -= delta / 15;
+        }
     });
 
     return (
         <group rotation={[0, 0, Math.PI / 4]}>
-            <Points ref={ref} positions={sphere} stride={3} frustumCulled {...props}>
+            <Points ref={ref} positions={sphere} stride={3} frustumCulled={false} {...props}>
                 <PointMaterial
                     transparent
                     color='#f272c8'
@@ -30,7 +51,11 @@ const Stars = (props) => {
 const StarsCanvas = () => {
     return (
         <div className='w-full h-auto absolute inset-0 z-[-1]'>
-            <Canvas camera={{ position: [0, 0, 1] }}>
+            <Canvas 
+                camera={{ position: [0, 0, 1] }}
+                eventSource={typeof document !== 'undefined' ? document.getElementById('root') : undefined}
+                eventPrefix="client"
+            >
                 <Suspense fallback={null}>
                     <Stars />
                 </Suspense>

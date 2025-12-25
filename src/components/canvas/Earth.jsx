@@ -50,14 +50,17 @@ const EarthCanvas = () => {
                 far: 200,
                 position: [-4, 3, 6],
             }}
+            eventSource={typeof document !== 'undefined' ? document.getElementById('root') : undefined}
+            eventPrefix="client"
         >
             <Suspense fallback={<CanvasLoader />}>
                 <OrbitControls
                     autoRotate
-                    autoRotateSpeed={5} /* Slower, smoother rotation */
+                    autoRotateSpeed={5}
                     enableZoom={false}
                     maxPolarAngle={Math.PI / 2}
                     minPolarAngle={Math.PI / 2}
+                    makeDefault
                 />
                 <Earth />
             </Suspense>

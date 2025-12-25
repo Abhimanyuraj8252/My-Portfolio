@@ -11,13 +11,11 @@ import {
 import CanvasLoader from "../Loader";
 
 const Ball = (props) => {
-    // Placeholder texture if icon url fails or is svg
-    // For SVG icons in 3D, we might need a different approach or convert them to textures.
-    // Assuming props.imgUrl is a path to a png/jpg. 
-    // If it's a string name like 'html', we'd need the actual import. 
-    // For this demo, let's just use a color or a standard texture if available.
-
-    const [decal] = useTexture([props.imgUrl]);
+    const [decal] = useTexture([props.imgUrl], (texture) => {
+        // Texture loaded successfully
+    }, (error) => {
+        console.error('Failed to load texture:', error);
+    });
 
     return (
         <Float speed={1.75} rotationIntensity={1} floatIntensity={2}>
@@ -48,9 +46,11 @@ const BallCanvas = ({ icon }) => {
             frameloop='demand'
             dpr={[1, 2]}
             gl={{ preserveDrawingBuffer: true }}
+            eventSource={typeof document !== 'undefined' ? document.getElementById('root') : undefined}
+            eventPrefix="client"
         >
             <Suspense fallback={<CanvasLoader />}>
-                <OrbitControls enableZoom={false} />
+                <OrbitControls enableZoom={false} makeDefault />
                 <Ball imgUrl={icon} />
             </Suspense>
 

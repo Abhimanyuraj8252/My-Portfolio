@@ -12,6 +12,7 @@ const RichTextEditor = ({ initialValue, onEditorChange }) => {
                 resolve(url);
             })
             .catch((err) => {
+                console.error('Image upload error:', err);
                 reject('Image upload failed: ' + err.message);
             });
     });
@@ -31,21 +32,20 @@ const RichTextEditor = ({ initialValue, onEditorChange }) => {
 
         input.onchange = async function () {
             const file = this.files[0];
+            if (!file) return;
 
             try {
                 let url;
                 if (meta.filetype === 'image') {
                     url = await uploadToCloudinary(file);
                 } else if (meta.filetype === 'media') {
-                    // Upload video to Cloudinary
                     url = await uploadVideoToCloudinary(file);
                 } else {
-                    // Upload PDF/files to Cloudinary
                     url = await uploadFileToCloudinary(file);
                 }
-
                 callback(url, { title: file.name });
             } catch (err) {
+                console.error('Upload error:', err);
                 alert('Upload failed: ' + err.message);
             }
         };
@@ -53,8 +53,9 @@ const RichTextEditor = ({ initialValue, onEditorChange }) => {
         input.click();
     };
 
-    // Custom button to upload PDF/files
+    // Custom buttons setup
     const setupCustomButtons = (editor) => {
+        // Upload file button
         editor.ui.registry.addButton('uploadfile', {
             icon: 'document-properties',
             tooltip: 'Upload PDF/Document',
@@ -65,11 +66,13 @@ const RichTextEditor = ({ initialValue, onEditorChange }) => {
 
                 input.onchange = async function () {
                     const file = this.files[0];
+                    if (!file) return;
+
                     try {
                         const url = await uploadFileToCloudinary(file);
-                        // Insert as a link
-                        editor.insertContent(`<a href="${url}" target="_blank">${file.name}</a>`);
+                        editor.insertContent(`<a href="${url}" target="_blank" rel="noopener noreferrer">${file.name}</a>`);
                     } catch (err) {
+                        console.error('File upload error:', err);
                         alert('Upload failed: ' + err.message);
                     }
                 };
@@ -78,7 +81,7 @@ const RichTextEditor = ({ initialValue, onEditorChange }) => {
             }
         });
 
-        // Custom button to upload video from local
+        // Upload video button
         editor.ui.registry.addButton('uploadvideo', {
             icon: 'embed',
             tooltip: 'Upload Video from Computer',
@@ -89,16 +92,192 @@ const RichTextEditor = ({ initialValue, onEditorChange }) => {
 
                 input.onchange = async function () {
                     const file = this.files[0];
+                    if (!file) return;
+
                     try {
                         const url = await uploadVideoToCloudinary(file);
                         editor.insertContent(`<video controls width="100%" style="max-width: 800px;"><source src="${url}" type="${file.type}">Your browser does not support video.</video>`);
                     } catch (err) {
+                        console.error('Video upload error:', err);
                         alert('Video upload failed: ' + err.message);
                     }
                 };
 
                 input.click();
             }
+        });
+
+        // Drag and drop functionality
+        editor.on('init', function () {
+            const editorBody = editor.getBody();
+            const editorDoc = editor.getDoc();
+
+            let isDragging = false;
+            let draggedElement = null;
+            let placeholder = null;
+            let clone = null;
+            let offsetX = 0;
+            let offsetY = 0;
+
+            const createClone = (element) => {
+                const rect = element.getBoundingClientRect();
+                const newClone = element.cloneNode(true);
+                newClone.style.cssText = `
+                    position: fixed;
+                    pointer-events: none;
+                    opacity: 0.7;
+                    z-index: 10000;
+                    width: ${rect.width}px;
+                    height: ${rect.height}px;
+                    box-shadow: 0 4px 20px rgba(99, 102, 241, 0.5);
+                    border: 2px solid #6366f1;
+                    transform: scale(0.95);
+                `;
+                document.body.appendChild(newClone);
+                return newClone;
+            };
+
+            const createPlaceholder = () => {
+                const ph = editorDoc.createElement('div');
+                ph.className = 'drag-placeholder';
+                ph.innerHTML = '📍 Drop here';
+                ph.style.cssText = `
+                    border: 3px dashed #6366f1;
+                    background: rgba(99, 102, 241, 0.1);
+                    min-height: 60px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    color: #6366f1;
+                    font-weight: bold;
+                    margin: 10px 0;
+                    border-radius: 8px;
+                `;
+                return ph;
+            };
+
+            const findInsertionPoint = (y) => {
+                const elements = Array.from(editorBody.querySelectorAll('p, div, h1, h2, h3, h4, h5, h6, img, video, iframe, blockquote, pre, ul, ol, table'));
+                let closest = null;
+                let closestDistance = Infinity;
+                let insertBefore = true;
+
+                elements.forEach(el => {
+                    if (el === placeholder || el === draggedElement || el.contains(draggedElement)) return;
+
+                    const rect = el.getBoundingClientRect();
+                    const midY = rect.top + rect.height / 2;
+                    const distance = Math.abs(y - midY);
+
+                    if (distance < closestDistance) {
+                        closestDistance = distance;
+                        closest = el;
+                        insertBefore = y < midY;
+                    }
+                });
+
+                return { element: closest, before: insertBefore };
+            };
+
+            editorBody.addEventListener('mousedown', function (e) {
+                const target = e.target;
+
+                if (target.tagName === 'IMG' || target.tagName === 'VIDEO' || target.tagName === 'IFRAME') {
+                    e.preventDefault();
+                    e.stopPropagation();
+
+                    isDragging = true;
+                    draggedElement = target;
+
+                    const rect = target.getBoundingClientRect();
+                    offsetX = e.clientX - rect.left;
+                    offsetY = e.clientY - rect.top;
+
+                    clone = createClone(target);
+                    clone.style.left = (e.clientX - offsetX) + 'px';
+                    clone.style.top = (e.clientY - offsetY) + 'px';
+
+                    placeholder = createPlaceholder();
+                    target.parentNode.insertBefore(placeholder, target.nextSibling);
+
+                    target.style.opacity = '0.3';
+                    editorDoc.body.style.userSelect = 'none';
+                }
+            }, true);
+
+            editorDoc.addEventListener('mousemove', function (e) {
+                if (!isDragging || !draggedElement || !clone) return;
+
+                e.preventDefault();
+
+                clone.style.left = (e.clientX - offsetX) + 'px';
+                clone.style.top = (e.clientY - offsetY) + 'px';
+
+                const insertion = findInsertionPoint(e.clientY);
+                if (insertion.element && placeholder) {
+                    if (insertion.before) {
+                        insertion.element.parentNode.insertBefore(placeholder, insertion.element);
+                    } else {
+                        insertion.element.parentNode.insertBefore(placeholder, insertion.element.nextSibling);
+                    }
+                }
+            });
+
+            editorDoc.addEventListener('mouseup', function () {
+                if (!isDragging || !draggedElement) return;
+
+                if (placeholder && placeholder.parentNode) {
+                    placeholder.parentNode.insertBefore(draggedElement, placeholder);
+                    placeholder.parentNode.removeChild(placeholder);
+                }
+
+                draggedElement.style.opacity = '';
+
+                if (clone && clone.parentNode) {
+                    clone.parentNode.removeChild(clone);
+                }
+
+                isDragging = false;
+                draggedElement = null;
+                placeholder = null;
+                clone = null;
+                editorDoc.body.style.userSelect = '';
+
+                editor.undoManager.add();
+                editor.fire('change');
+            });
+
+            editorDoc.addEventListener('mouseleave', function () {
+                if (isDragging && draggedElement) {
+                    draggedElement.style.opacity = '';
+
+                    if (clone && clone.parentNode) {
+                        clone.parentNode.removeChild(clone);
+                    }
+                    if (placeholder && placeholder.parentNode) {
+                        placeholder.parentNode.removeChild(placeholder);
+                    }
+
+                    isDragging = false;
+                    draggedElement = null;
+                    placeholder = null;
+                    clone = null;
+                    editorDoc.body.style.userSelect = '';
+                }
+            });
+
+            const addMediaCursor = () => {
+                const mediaElements = editorBody.querySelectorAll('img, video, iframe');
+                mediaElements.forEach(el => {
+                    el.style.cursor = 'grab';
+                    if (!el.title) {
+                        el.title = 'Drag to move';
+                    }
+                });
+            };
+
+            addMediaCursor();
+            editor.on('NodeChange SetContent', addMediaCursor);
         });
     };
 
@@ -172,18 +351,17 @@ const RichTextEditor = ({ initialValue, onEditorChange }) => {
                 quickbars_selection_toolbar: 'bold italic | quicklink h2 h3 blockquote quickimage quicktable',
                 quickbars_insert_toolbar: 'quickimage quicktable',
 
-                // IMAGE SETTINGS - FULL CONTROL (URL + Upload both work)
+                // IMAGE SETTINGS
                 images_upload_handler: images_upload_handler,
                 automatic_uploads: true,
+                paste_data_images: true,
+                images_reuse_filename: true,
                 image_caption: true,
                 image_advtab: true,
                 image_title: true,
                 image_description: true,
                 image_dimensions: true,
-                image_uploadtab: true,  // Show upload tab
-                // Allow empty src for URL input
-                images_reuse_filename: true,
-                // Image alignment classes
+                image_uploadtab: true,
                 image_class_list: [
                     { title: 'None', value: '' },
                     { title: 'Left', value: 'img-left' },
@@ -205,7 +383,7 @@ const RichTextEditor = ({ initialValue, onEditorChange }) => {
                 media_dimensions: true,
                 media_live_embeds: true,
 
-                // TABLE SETTINGS - CUSTOM SIZES (up to 40x40)
+                // TABLE SETTINGS
                 table_advtab: true,
                 table_cell_advtab: true,
                 table_row_advtab: true,
@@ -219,10 +397,8 @@ const RichTextEditor = ({ initialValue, onEditorChange }) => {
                 },
                 table_sizing_mode: 'responsive',
                 table_column_resizing: 'resizetable',
-                // Custom table grid size (default is 10x10, increasing to 40x40)
                 table_grid: true,
                 table_use_colgroups: true,
-                // Table class options
                 table_class_list: [
                     { title: 'None', value: '' },
                     { title: 'Bordered', value: 'table-bordered' },
@@ -252,69 +428,116 @@ const RichTextEditor = ({ initialValue, onEditorChange }) => {
                 skin: "oxide-dark",
                 content_css: "dark",
 
-                // Styling with image/video positioning classes
+                // Content styling
                 content_style: `
                     body { 
-                        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif; 
+                        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
                         font-size: 16px; 
                         line-height: 1.6;
                         color: #e0e0e0;
                         background-color: #1a1a2e;
                         padding: 20px;
                     }
-                    /* Image positioning */
-                    img { max-width: 100%; height: auto; display: block; margin: 10px 0; }
-                    img.img-left { float: left; margin-right: 20px; margin-bottom: 10px; }
-                    img.img-center { display: block; margin: 20px auto; }
-                    img.img-right { float: right; margin-left: 20px; margin-bottom: 10px; }
-                    img.img-full { width: 100%; }
-                    img.img-small { max-width: 200px; }
-                    img.img-medium { max-width: 400px; }
-                    img.img-large { max-width: 800px; }
-                    /* Video styling */
-                    video, iframe { max-width: 100%; display: block; margin: 20px auto; }
-                    /* Table styles */
-                    table { border-collapse: collapse; width: 100%; margin: 20px 0; }
-                    th, td { border: 1px solid #444; padding: 12px; }
-                    th { background: #2a2a4a; font-weight: bold; }
-                    table.table-bordered { border: 2px solid #6366f1; }
-                    table.table-striped tr:nth-child(even) { background: #1f1f3a; }
-                    table.table-hover tr:hover { background: #2a2a4a; }
-                    table.table-compact td, table.table-compact th { padding: 6px; }
-                    /* Other */
-                    pre { background: #0d0d1a; padding: 15px; border-radius: 8px; overflow-x: auto; }
-                    code { background: #0d0d1a; padding: 2px 6px; border-radius: 4px; }
-                    blockquote { border-left: 4px solid #6366f1; padding-left: 20px; margin-left: 0; color: #a0a0a0; }
-                    a { color: #6366f1; }
+                    img { 
+                        max-width: 100%; 
+                        height: auto; 
+                        display: block; 
+                        margin: 10px 0; 
+                    }
+                    img.img-left { 
+                        float: left; 
+                        margin-right: 20px; 
+                        margin-bottom: 10px; 
+                    }
+                    img.img-center { 
+                        display: block; 
+                        margin: 20px auto; 
+                    }
+                    img.img-right { 
+                        float: right; 
+                        margin-left: 20px; 
+                        margin-bottom: 10px; 
+                    }
+                    img.img-full { 
+                        width: 100%; 
+                    }
+                    img.img-small { 
+                        max-width: 200px; 
+                    }
+                    img.img-medium { 
+                        max-width: 400px; 
+                    }
+                    img.img-large { 
+                        max-width: 800px; 
+                    }
+                    video, iframe { 
+                        max-width: 100%; 
+                        display: block; 
+                        margin: 20px auto; 
+                    }
+                    table { 
+                        border-collapse: collapse; 
+                        width: 100%; 
+                        margin: 20px 0; 
+                    }
+                    th, td { 
+                        border: 1px solid #444; 
+                        padding: 12px; 
+                    }
+                    th { 
+                        background: #2a2a4a; 
+                        font-weight: bold; 
+                    }
+                    table.table-bordered { 
+                        border: 2px solid #6366f1; 
+                    }
+                    table.table-striped tr:nth-child(even) { 
+                        background: #1f1f3a; 
+                    }
+                    table.table-hover tr:hover { 
+                        background: #2a2a4a; 
+                    }
+                    table.table-compact td, table.table-compact th { 
+                        padding: 6px; 
+                    }
+                    pre { 
+                        background: #0d0d1a; 
+                        padding: 15px; 
+                        border-radius: 8px; 
+                        overflow-x: auto; 
+                    }
+                    code { 
+                        background: #0d0d1a; 
+                        padding: 2px 6px; 
+                        border-radius: 4px; 
+                    }
+                    blockquote { 
+                        border-left: 4px solid #6366f1; 
+                        padding-left: 20px; 
+                        margin-left: 0; 
+                        color: #a0a0a0; 
+                    }
+                    a { 
+                        color: #6366f1; 
+                        text-decoration: none; 
+                    }
+                    a:hover { 
+                        text-decoration: underline; 
+                    }
                 `,
 
-                // Autosave settings
+                // Other settings
                 autosave_interval: '30s',
-                autosave_prefix: 'tinymce-autosave-{path}{query}-{id}-',
+                autosave_prefix: 'tinymce-autosave-',
                 autosave_restore_when_empty: true,
-
-                // Resize
                 resize: true,
                 min_height: 500,
-
-                // Formats
                 block_formats: 'Paragraph=p; Heading 1=h1; Heading 2=h2; Heading 3=h3; Heading 4=h4; Heading 5=h5; Heading 6=h6; Preformatted=pre; Blockquote=blockquote',
-
-                // Font options
                 font_family_formats: 'Arial=arial,helvetica,sans-serif; Comic Sans MS=comic sans ms,sans-serif; Courier New=courier new,courier; Georgia=georgia,palatino; Helvetica=helvetica; Impact=impact,chicago; Tahoma=tahoma,arial,helvetica,sans-serif; Times New Roman=times new roman,times; Trebuchet MS=trebuchet ms,geneva; Verdana=verdana,geneva; Roboto=roboto; Open Sans=open sans',
                 font_size_formats: '8pt 10pt 12pt 14pt 16pt 18pt 24pt 36pt 48pt 72pt',
-
-                // Promotion disabled (no upgrade prompts)
                 promotion: false,
                 branding: false,
-
-                // Allow all elements and attributes for full control
-                extended_valid_elements: 'img[class|src|border|alt|title|width|height|style|align],' +
-                    'video[class|src|controls|width|height|poster|autoplay|loop|muted|style],' +
-                    'iframe[src|width|height|frameborder|allowfullscreen|style],' +
-                    'a[href|target|title|class|style]',
-
-                // Object resizing
+                extended_valid_elements: 'img[class|src|border|alt|title|width|height|style|align],video[class|src|controls|width|height|poster|autoplay|loop|muted|style],iframe[src|width|height|frameborder|allowfullscreen|style],a[href|target|title|class|style|rel]',
                 object_resizing: true,
                 resize_img_proportional: true,
             }}
