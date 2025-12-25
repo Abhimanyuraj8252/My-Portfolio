@@ -6,7 +6,7 @@ import { styles } from "../styles";
 
 const Hero = () => {
     return (
-        <section className={`relative w-full min-h-screen mx-auto overflow-hidden bg-primary`}>
+        <section className={`relative w-full h-auto mx-auto overflow-hidden bg-primary`}>
             {/* Animated Background Gradients - Reduced for mobile performance */}
             <div className="absolute inset-0 top-0 z-0 overflow-hidden">
                 <motion.div

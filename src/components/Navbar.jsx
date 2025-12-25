@@ -43,11 +43,9 @@ const Navbar = () => {
             return false;
         };
         
-        if (location.pathname !== '/') {
-            navigate('/', { replace: false });
-            // Poll for the element to exist (handling lazy loading delays)
+        const pollForElement = () => {
             let attempts = 0;
-            const maxAttempts = 100; // 10 seconds max wait
+            const maxAttempts = 150; // 15 seconds
             const interval = setInterval(() => {
                 if (scrollToElement()) {
                     clearInterval(interval);
@@ -57,8 +55,15 @@ const Navbar = () => {
                     clearInterval(interval);
                 }
             }, 100);
+        };
+
+        if (location.pathname !== '/') {
+            navigate('/');
+            pollForElement();
         } else {
-            scrollToElement();
+            if (!scrollToElement()) {
+                pollForElement();
+            }
         }
     };
 

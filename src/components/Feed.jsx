@@ -195,6 +195,7 @@ const Feed = () => {
                                             placeholder="What's your name?"
                                             required
                                             className="w-full bg-tertiary py-3 px-4 placeholder:text-secondary text-white rounded-lg outline-none border border-transparent focus:border-violet-500 transition-all font-medium"
+                                            autoComplete="name"
                                         />
                                     </label>
 
@@ -207,6 +208,7 @@ const Feed = () => {
                                             onChange={handleChange}
                                             placeholder="e.g. CEO of Company"
                                             className="w-full bg-tertiary py-3 px-4 placeholder:text-secondary text-white rounded-lg outline-none border border-transparent focus:border-violet-500 transition-all font-medium"
+                                            autoComplete="organization-title"
                                         />
                                     </label>
                                 </div>

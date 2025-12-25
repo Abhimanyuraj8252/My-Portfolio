@@ -229,6 +229,7 @@ const TestimonialsPage = () => {
                                                     placeholder="What's your name?"
                                                     required
                                                     className="w-full bg-black-200/50 py-3.5 pl-11 pr-4 placeholder:text-secondary/50 text-white rounded-xl outline-none border border-white/10 focus:border-violet-500 transition-all font-medium"
+                                                    autoComplete="name"
                                                 />
                                             </div>
                                         </label>
@@ -243,6 +244,7 @@ const TestimonialsPage = () => {
                                                 onChange={handleChange}
                                                 placeholder="e.g. CEO of Company"
                                                 className="w-full bg-black-200/50 py-3.5 px-4 placeholder:text-secondary/50 text-white rounded-xl outline-none border border-white/10 focus:border-violet-500 transition-all font-medium"
+                                                autoComplete="organization-title"
                                             />
                                         </label>
 
