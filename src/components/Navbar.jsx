@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { styles } from "../styles";
 import { navLinks } from "../constants";
 import { logo } from "../assets";
@@ -9,6 +9,8 @@ const Navbar = () => {
     const [active, setActive] = useState("");
     const [toggle, setToggle] = useState(false);
     const [scrolled, setScrolled] = useState(false);
+    const navigate = useNavigate();
+    const location = useLocation();
 
     useEffect(() => {
         const handleScroll = () => {
@@ -23,6 +25,26 @@ const Navbar = () => {
         window.addEventListener("scroll", handleScroll, { passive: true });
         return () => window.removeEventListener("scroll", handleScroll, { passive: true });
     }, []);
+
+    const handleNavClick = (navId, navTitle) => {
+        setActive(navTitle);
+        setToggle(false);
+        
+        if (location.pathname !== '/') {
+            navigate('/');
+            setTimeout(() => {
+                const element = document.getElementById(navId);
+                if (element) {
+                    element.scrollIntoView({ behavior: 'smooth' });
+                }
+            }, 100);
+        } else {
+            const element = document.getElementById(navId);
+            if (element) {
+                element.scrollIntoView({ behavior: 'smooth' });
+            }
+        }
+    };
 
     return (
         <nav
@@ -52,9 +74,9 @@ const Navbar = () => {
                             key={nav.id}
                             className={`${active === nav.title ? "text-white" : "text-secondary"
                                 } hover:text-white text-[18px] font-medium cursor-pointer transition-colors duration-200`}
-                            onClick={() => setActive(nav.title)}
+                            onClick={() => handleNavClick(nav.id, nav.title)}
                         >
-                            <a href={`/#${nav.id}`}>{nav.title}</a>
+                            <span>{nav.title}</span>
                         </li>
                     ))}
                     <li className="text-secondary hover:text-white text-[18px] font-medium cursor-pointer transition-colors duration-200">
@@ -84,12 +106,9 @@ const Navbar = () => {
                                     key={nav.id}
                                     className={`font-poppins font-medium cursor-pointer text-[16px] ${active === nav.title ? "text-white" : "text-secondary"
                                         }`}
-                                    onClick={() => {
-                                        setToggle(!toggle);
-                                        setActive(nav.title);
-                                    }}
+                                    onClick={() => handleNavClick(nav.id, nav.title)}
                                 >
-                                    <a href={`/#${nav.id}`}>{nav.title}</a>
+                                    <span>{nav.title}</span>
                                 </li>
                             ))}
                             <li
