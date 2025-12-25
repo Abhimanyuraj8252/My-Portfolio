@@ -6,7 +6,7 @@ export default defineConfig({
   plugins: [react()],
   assetsInclude: ['**/*.usdz'],
   build: {
-    chunkSizeWarningLimit: 1000, // Increase chunk size warning limit to 1000 kB
+    chunkSizeWarningLimit: 2000, // Increase chunk size warning limit to 2000 kB
     rollupOptions: {
       output: {
         manualChunks: {
