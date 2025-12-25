@@ -35,13 +35,13 @@ const Navbar = () => {
             setTimeout(() => {
                 const element = document.getElementById(navId);
                 if (element) {
-                    element.scrollIntoView({ behavior: 'smooth' });
+                    element.scrollIntoView({ behavior: 'smooth', block: 'start' });
                 }
-            }, 100);
+            }, 500);
         } else {
             const element = document.getElementById(navId);
             if (element) {
-                element.scrollIntoView({ behavior: 'smooth' });
+                element.scrollIntoView({ behavior: 'smooth', block: 'start' });
             }
         }
     };
