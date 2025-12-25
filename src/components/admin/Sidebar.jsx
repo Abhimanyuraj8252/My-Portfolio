@@ -1,42 +1,90 @@
 import React from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "../../lib/supabase/client";
-import { LayoutDashboard, FileText, MessageSquare, Mail, LogOut } from "lucide-react";
+import { LayoutDashboard, FileText, MessageSquare, Mail, LogOut, X } from "lucide-react";
 
-const Sidebar = () => {
+const Sidebar = ({ isOpen, onClose }) => {
     const navigate = useNavigate();
+    const location = useLocation();
 
     const handleLogout = async () => {
         await supabase.auth.signOut();
-        navigate("/admin/login");
+        navigate("/x7k9m2p4q/login");
     };
 
+    const handleLinkClick = () => {
+        // Close sidebar on mobile after clicking a link
+        if (onClose) onClose();
+    };
+
+    const isActive = (path) => location.pathname === path;
+
+    const navItems = [
+        { path: "/x7k9m2p4q/dashboard", icon: LayoutDashboard, label: "Dashboard" },
+        { path: "/x7k9m2p4q/blogs", icon: FileText, label: "Blogs" },
+        { path: "/x7k9m2p4q/testimonials", icon: MessageSquare, label: "Testimonials" },
+        { path: "/x7k9m2p4q/contacts", icon: Mail, label: "Messages" },
+    ];
+
     return (
-        <div className="w-64 h-screen bg-tertiary fixed left-0 top-0 flex flex-col p-6">
-            <h2 className="text-white text-2xl font-bold mb-10">Portfolio Admin</h2>
+        <>
+            {/* Mobile Overlay */}
+            {isOpen && (
+                <div
+                    className="fixed inset-0 bg-black/60 z-40 md:hidden backdrop-blur-sm"
+                    onClick={onClose}
+                />
+            )}
 
-            <nav className="flex flex-col gap-4 flex-1">
-                <Link to="/admin/dashboard" className="flex items-center gap-3 text-secondary hover:text-white transition-colors text-lg">
-                    <LayoutDashboard size={20} /> Dashboard
-                </Link>
-                <Link to="/admin/blogs" className="flex items-center gap-3 text-secondary hover:text-white transition-colors text-lg">
-                    <FileText size={20} /> Blogs
-                </Link>
-                <Link to="/admin/testimonials" className="flex items-center gap-3 text-secondary hover:text-white transition-colors text-lg">
-                    <MessageSquare size={20} /> Testimonials
-                </Link>
-                <Link to="/admin/contacts" className="flex items-center gap-3 text-secondary hover:text-white transition-colors text-lg">
-                    <Mail size={20} /> Contact Messages
-                </Link>
-            </nav>
+            {/* Sidebar */}
+            <div className={`
+                fixed left-0 top-0 h-screen bg-tertiary flex flex-col p-6 z-50
+                w-64 transition-transform duration-300 ease-in-out
+                ${isOpen ? 'translate-x-0' : '-translate-x-full'}
+                md:translate-x-0
+            `}>
+                {/* Header with Close Button (mobile only) */}
+                <div className="flex justify-between items-center mb-10">
+                    <h2 className="text-white text-xl font-bold">Control Panel</h2>
+                    <button
+                        onClick={onClose}
+                        className="md:hidden p-2 text-secondary hover:text-white transition-colors"
+                    >
+                        <X size={24} />
+                    </button>
+                </div>
 
-            <button
-                onClick={handleLogout}
-                className="flex items-center gap-3 text-red-500 hover:text-red-400 transition-colors mt-auto text-lg"
-            >
-                <LogOut size={20} /> Logout
-            </button>
-        </div>
+                {/* Navigation */}
+                <nav className="flex flex-col gap-2 flex-1">
+                    {navItems.map(({ path, icon: Icon, label }) => (
+                        <Link
+                            key={path}
+                            to={path}
+                            onClick={handleLinkClick}
+                            className={`
+                                flex items-center gap-3 px-4 py-3 rounded-lg transition-all text-base
+                                ${isActive(path)
+                                    ? 'bg-violet-600 text-white'
+                                    : 'text-secondary hover:text-white hover:bg-white/5'
+                                }
+                            `}
+                        >
+                            <Icon size={20} />
+                            {label}
+                        </Link>
+                    ))}
+                </nav>
+
+                {/* Logout Button */}
+                <button
+                    onClick={handleLogout}
+                    className="flex items-center gap-3 px-4 py-3 text-red-500 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-all text-base mt-auto"
+                >
+                    <LogOut size={20} />
+                    Logout
+                </button>
+            </div>
+        </>
     );
 };
 

@@ -82,10 +82,10 @@ const App = () => {
                   <Route path="/blog/:slug" element={<BlogDetails />} />
                   <Route path="/testimonials" element={<TestimonialsPage />} />
 
-                  {/* Admin Login - MUST be before ProtectedRoute */}
-                  <Route path="/admin/login" element={<Login />} />
+                  {/* Admin Routes - Hidden URL for security */}
+                  <Route path="/x7k9m2p4q/login" element={<Login />} />
 
-                  <Route path="/admin" element={<ProtectedRoute />}>
+                  <Route path="/x7k9m2p4q" element={<ProtectedRoute />}>
                     <Route index element={<Dashboard />} />
                     <Route path="dashboard" element={<Dashboard />} />
                     <Route path="blogs" element={<ManageBlogs />} />

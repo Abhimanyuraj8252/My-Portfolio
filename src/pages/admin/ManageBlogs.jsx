@@ -3,10 +3,10 @@ import Sidebar from "../../components/admin/Sidebar";
 import RichTextEditor from "../../components/admin/RichTextEditor";
 import { supabase } from "../../lib/supabase/client";
 import { uploadToCloudinary } from "../../lib/cloudinary/service";
-import { Pencil, Trash2, Eye, EyeOff, Star, Plus, X, ChevronDown, ChevronUp } from "lucide-react";
+import { Pencil, Trash2, Eye, EyeOff, Star, Plus, X, ChevronDown, ChevronUp, Menu, ArrowLeft } from "lucide-react";
 
 const ManageBlogs = () => {
-    // View state: 'list' or 'create' or 'edit'
+    const [sidebarOpen, setSidebarOpen] = useState(false);
     const [view, setView] = useState('list');
     const [blogs, setBlogs] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -14,7 +14,6 @@ const ManageBlogs = () => {
     const [editingBlog, setEditingBlog] = useState(null);
     const [expandedBlog, setExpandedBlog] = useState(null);
 
-    // Form state
     const [form, setForm] = useState({
         title: '',
         excerpt: '',
@@ -29,7 +28,6 @@ const ManageBlogs = () => {
     const [tagInput, setTagInput] = useState('');
     const [coverUploading, setCoverUploading] = useState(false);
 
-    // Categories list
     const categories = [
         'Technology', 'Web Development', 'App Development',
         'UI/UX Design', 'SEO', 'Digital Marketing',
@@ -145,14 +143,12 @@ const ManageBlogs = () => {
 
         let error;
         if (editingBlog) {
-            // Update existing blog
             const result = await supabase
                 .from('blogs')
                 .update(blogData)
                 .eq('id', editingBlog.id);
             error = result.error;
         } else {
-            // Create new blog
             const result = await supabase
                 .from('blogs')
                 .insert([blogData]);
@@ -209,7 +205,6 @@ const ManageBlogs = () => {
         });
     };
 
-    // Calculate reading time from content
     const calculateReadingTime = (text) => {
         const words = text.replace(/<[^>]*>/g, '').split(/\s+/).length;
         return Math.max(1, Math.ceil(words / 200));
@@ -220,302 +215,339 @@ const ManageBlogs = () => {
         setForm({ ...form, content: newContent, reading_time: readingTime });
     };
 
+    const getPageTitle = () => {
+        if (view === 'list') return 'Manage Blogs';
+        if (view === 'create') return 'Create Blog';
+        return 'Edit Blog';
+    };
+
     return (
         <div className="flex bg-primary min-h-screen">
-            <Sidebar />
-            <div className="ml-64 p-10 w-full text-white">
+            <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
-                {/* HEADER */}
-                <div className="flex justify-between items-center mb-8">
-                    <h1 className="text-4xl font-bold">
-                        {view === 'list' ? 'Manage Blogs' : view === 'create' ? 'Create New Blog' : 'Edit Blog'}
-                    </h1>
+            <div className="flex-1 md:ml-64 min-h-screen">
+                {/* Mobile Header */}
+                <div className="md:hidden flex items-center gap-4 p-4 bg-tertiary sticky top-0 z-30">
                     {view === 'list' ? (
                         <button
-                            onClick={handleCreateNew}
-                            className="flex items-center gap-2 bg-green-600 hover:bg-green-700 py-3 px-6 rounded-lg font-bold transition-colors"
+                            onClick={() => setSidebarOpen(true)}
+                            className="p-2 text-white hover:bg-white/10 rounded-lg transition-colors"
                         >
-                            <Plus size={20} /> Create New Blog
+                            <Menu size={24} />
                         </button>
                     ) : (
                         <button
                             onClick={handleCancel}
-                            className="flex items-center gap-2 bg-gray-600 hover:bg-gray-700 py-3 px-6 rounded-lg font-bold transition-colors"
+                            className="p-2 text-white hover:bg-white/10 rounded-lg transition-colors"
                         >
-                            <X size={20} /> Cancel
+                            <ArrowLeft size={24} />
+                        </button>
+                    )}
+                    <h1 className="text-white text-lg font-bold flex-1">{getPageTitle()}</h1>
+                    {view === 'list' && (
+                        <button
+                            onClick={handleCreateNew}
+                            className="p-2 bg-green-600 rounded-lg"
+                        >
+                            <Plus size={20} />
                         </button>
                     )}
                 </div>
 
-                {/* LIST VIEW */}
-                {view === 'list' && (
-                    <div className="space-y-4">
-                        {loading ? (
-                            <p>Loading blogs...</p>
-                        ) : blogs.length === 0 ? (
-                            <div className="text-center py-20 text-secondary">
-                                <p className="text-xl mb-4">No blogs yet!</p>
-                                <button
-                                    onClick={handleCreateNew}
-                                    className="bg-violet-600 hover:bg-violet-700 py-3 px-6 rounded-lg font-bold"
-                                >
-                                    Create Your First Blog
-                                </button>
-                            </div>
-                        ) : (
-                            blogs.map((blog) => (
-                                <div key={blog.id} className="bg-black-100 rounded-2xl overflow-hidden">
-                                    {/* Blog Header */}
-                                    <div
-                                        className="p-6 cursor-pointer hover:bg-black-200 transition-colors"
-                                        onClick={() => setExpandedBlog(expandedBlog === blog.id ? null : blog.id)}
-                                    >
-                                        <div className="flex justify-between items-start">
-                                            <div className="flex gap-4">
-                                                {blog.cover_image && (
-                                                    <img src={blog.cover_image} alt="" className="w-20 h-20 object-cover rounded-lg" />
-                                                )}
-                                                <div>
-                                                    <h3 className="text-xl font-bold flex items-center gap-2">
-                                                        {blog.title}
-                                                        {blog.featured && <Star className="text-yellow-500" size={18} fill="currentColor" />}
-                                                    </h3>
-                                                    <p className="text-secondary text-sm mt-1">
-                                                        {blog.category && <span className="bg-violet-500/20 text-violet-400 px-2 py-0.5 rounded mr-2">{blog.category}</span>}
-                                                        {formatDate(blog.created_at)} • {blog.reading_time || 5} min read
-                                                    </p>
-                                                    {blog.tags?.length > 0 && (
-                                                        <div className="flex gap-1 mt-2 flex-wrap">
-                                                            {blog.tags.map((tag, i) => (
-                                                                <span key={i} className="bg-tertiary text-xs px-2 py-1 rounded">{tag}</span>
-                                                            ))}
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            </div>
-                                            <div className="flex items-center gap-2">
-                                                <span className={`px-3 py-1 rounded-full text-xs font-bold ${blog.published ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}`}>
-                                                    {blog.published ? 'Published' : 'Draft'}
-                                                </span>
-                                                {expandedBlog === blog.id ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    {/* Expanded Actions */}
-                                    {expandedBlog === blog.id && (
-                                        <div className="px-6 pb-6 pt-2 border-t border-gray-800">
-                                            {blog.excerpt && (
-                                                <p className="text-secondary mb-4">{blog.excerpt}</p>
-                                            )}
-                                            <div className="flex gap-3">
-                                                <button
-                                                    onClick={() => handleEdit(blog)}
-                                                    className="flex items-center gap-2 bg-violet-600 hover:bg-violet-700 px-4 py-2 rounded-lg transition-colors"
-                                                >
-                                                    <Pencil size={16} /> Edit
-                                                </button>
-                                                <button
-                                                    onClick={() => togglePublish(blog)}
-                                                    className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${blog.published ? 'bg-orange-600 hover:bg-orange-700' : 'bg-green-600 hover:bg-green-700'}`}
-                                                >
-                                                    {blog.published ? <EyeOff size={16} /> : <Eye size={16} />}
-                                                    {blog.published ? 'Unpublish' : 'Publish'}
-                                                </button>
-                                                <button
-                                                    onClick={() => toggleFeatured(blog)}
-                                                    className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${blog.featured ? 'bg-yellow-600 hover:bg-yellow-700' : 'bg-gray-600 hover:bg-gray-700'}`}
-                                                >
-                                                    <Star size={16} fill={blog.featured ? "currentColor" : "none"} />
-                                                    {blog.featured ? 'Unfeature' : 'Feature'}
-                                                </button>
-                                                <a
-                                                    href={`/blog/${blog.slug}`}
-                                                    target="_blank"
-                                                    className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg transition-colors"
-                                                >
-                                                    <Eye size={16} /> View
-                                                </a>
-                                                <button
-                                                    onClick={() => handleDelete(blog.id)}
-                                                    className="flex items-center gap-2 bg-red-600 hover:bg-red-700 px-4 py-2 rounded-lg transition-colors"
-                                                >
-                                                    <Trash2 size={16} /> Delete
-                                                </button>
-                                            </div>
-                                        </div>
-                                    )}
-                                </div>
-                            ))
-                        )}
-                    </div>
-                )}
-
-                {/* CREATE/EDIT VIEW */}
-                {(view === 'create' || view === 'edit') && (
-                    <div className="max-w-5xl space-y-6">
-                        {/* Title */}
-                        <div>
-                            <label className="block text-secondary mb-2">Title *</label>
-                            <input
-                                type="text"
-                                value={form.title}
-                                onChange={(e) => setForm({ ...form, title: e.target.value })}
-                                placeholder="Enter blog title..."
-                                className="w-full bg-tertiary py-4 px-6 rounded-lg text-white text-xl outline-none font-bold"
-                            />
-                        </div>
-
-                        {/* Cover Image */}
-                        <div>
-                            <label className="block text-secondary mb-2">Cover Image</label>
-                            <div className="flex gap-4 items-center">
-                                {form.cover_image && (
-                                    <img src={form.cover_image} alt="Cover" className="w-32 h-20 object-cover rounded-lg" />
-                                )}
-                                <input
-                                    type="file"
-                                    accept="image/*"
-                                    onChange={handleCoverUpload}
-                                    className="hidden"
-                                    id="cover-upload"
-                                />
-                                <label
-                                    htmlFor="cover-upload"
-                                    className="bg-tertiary hover:bg-[#1f1b3c] py-3 px-6 rounded-lg cursor-pointer transition-colors"
-                                >
-                                    {coverUploading ? 'Uploading...' : 'Upload Cover'}
-                                </label>
-                                <span className="text-secondary">or</span>
-                                <input
-                                    type="text"
-                                    value={form.cover_image}
-                                    onChange={(e) => setForm({ ...form, cover_image: e.target.value })}
-                                    placeholder="Paste image URL..."
-                                    className="flex-1 bg-tertiary py-3 px-4 rounded-lg text-white outline-none"
-                                />
-                            </div>
-                        </div>
-
-                        {/* Category & Reading Time */}
-                        <div className="grid grid-cols-2 gap-6">
-                            <div>
-                                <label className="block text-secondary mb-2">Category</label>
-                                <select
-                                    value={form.category}
-                                    onChange={(e) => setForm({ ...form, category: e.target.value })}
-                                    className="w-full bg-tertiary py-3 px-4 rounded-lg text-white outline-none"
-                                >
-                                    <option value="">Select Category</option>
-                                    {categories.map((cat) => (
-                                        <option key={cat} value={cat}>{cat}</option>
-                                    ))}
-                                </select>
-                            </div>
-                            <div>
-                                <label className="block text-secondary mb-2">Reading Time (minutes)</label>
-                                <input
-                                    type="number"
-                                    value={form.reading_time}
-                                    onChange={(e) => setForm({ ...form, reading_time: parseInt(e.target.value) || 1 })}
-                                    min="1"
-                                    className="w-full bg-tertiary py-3 px-4 rounded-lg text-white outline-none"
-                                />
-                            </div>
-                        </div>
-
-                        {/* Tags */}
-                        <div>
-                            <label className="block text-secondary mb-2">Tags</label>
-                            <div className="flex gap-2 flex-wrap mb-2">
-                                {form.tags.map((tag, i) => (
-                                    <span key={i} className="bg-violet-500/20 text-violet-400 px-3 py-1 rounded-full flex items-center gap-1">
-                                        {tag}
-                                        <X size={14} className="cursor-pointer" onClick={() => handleRemoveTag(tag)} />
-                                    </span>
-                                ))}
-                            </div>
-                            <div className="flex gap-2">
-                                <input
-                                    type="text"
-                                    value={tagInput}
-                                    onChange={(e) => setTagInput(e.target.value)}
-                                    onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddTag())}
-                                    placeholder="Add a tag..."
-                                    className="flex-1 bg-tertiary py-3 px-4 rounded-lg text-white outline-none"
-                                />
-                                <button
-                                    onClick={handleAddTag}
-                                    className="bg-violet-600 hover:bg-violet-700 px-4 rounded-lg"
-                                >
-                                    Add
-                                </button>
-                            </div>
-                        </div>
-
-                        {/* Excerpt */}
-                        <div>
-                            <label className="block text-secondary mb-2">Excerpt / Short Description</label>
-                            <textarea
-                                value={form.excerpt}
-                                onChange={(e) => setForm({ ...form, excerpt: e.target.value })}
-                                placeholder="Brief description of the blog..."
-                                rows={3}
-                                className="w-full bg-tertiary py-3 px-4 rounded-lg text-white outline-none resize-none"
-                            />
-                        </div>
-
-                        {/* Content */}
-                        <div>
-                            <label className="block text-secondary mb-2">Content *</label>
-                            <div className="rounded-lg overflow-hidden">
-                                <RichTextEditor
-                                    initialValue={form.content}
-                                    onEditorChange={handleContentChange}
-                                />
-                            </div>
-                        </div>
-
-                        {/* Options */}
-                        <div className="flex gap-6">
-                            <label className="flex items-center gap-2 cursor-pointer">
-                                <input
-                                    type="checkbox"
-                                    checked={form.published}
-                                    onChange={(e) => setForm({ ...form, published: e.target.checked })}
-                                    className="w-5 h-5 rounded"
-                                />
-                                <span>Publish Immediately</span>
-                            </label>
-                            <label className="flex items-center gap-2 cursor-pointer">
-                                <input
-                                    type="checkbox"
-                                    checked={form.featured}
-                                    onChange={(e) => setForm({ ...form, featured: e.target.checked })}
-                                    className="w-5 h-5 rounded"
-                                />
-                                <span>Featured Blog</span>
-                            </label>
-                        </div>
-
-                        {/* Save Button */}
-                        <div className="flex gap-4 pt-4">
+                {/* Content Area */}
+                <div className="p-4 md:p-10 text-white">
+                    {/* Desktop Header */}
+                    <div className="hidden md:flex justify-between items-center mb-8">
+                        <h1 className="text-4xl font-bold">{getPageTitle()}</h1>
+                        {view === 'list' ? (
                             <button
-                                onClick={handleSave}
-                                disabled={saving}
-                                className="bg-green-600 hover:bg-green-700 py-3 px-8 rounded-lg font-bold transition-colors"
+                                onClick={handleCreateNew}
+                                className="flex items-center gap-2 bg-green-600 hover:bg-green-700 py-3 px-6 rounded-lg font-bold transition-colors"
                             >
-                                {saving ? 'Saving...' : (editingBlog ? 'Update Blog' : 'Create Blog')}
+                                <Plus size={20} /> Create New Blog
                             </button>
+                        ) : (
                             <button
                                 onClick={handleCancel}
-                                className="bg-gray-600 hover:bg-gray-700 py-3 px-8 rounded-lg font-bold transition-colors"
+                                className="flex items-center gap-2 bg-gray-600 hover:bg-gray-700 py-3 px-6 rounded-lg font-bold transition-colors"
                             >
-                                Cancel
+                                <X size={20} /> Cancel
                             </button>
-                        </div>
+                        )}
                     </div>
-                )}
+
+                    {/* LIST VIEW */}
+                    {view === 'list' && (
+                        <div className="space-y-4">
+                            {loading ? (
+                                <p>Loading blogs...</p>
+                            ) : blogs.length === 0 ? (
+                                <div className="text-center py-10 md:py-20 text-secondary">
+                                    <p className="text-lg md:text-xl mb-4">No blogs yet!</p>
+                                    <button
+                                        onClick={handleCreateNew}
+                                        className="bg-violet-600 hover:bg-violet-700 py-3 px-6 rounded-lg font-bold"
+                                    >
+                                        Create Your First Blog
+                                    </button>
+                                </div>
+                            ) : (
+                                blogs.map((blog) => (
+                                    <div key={blog.id} className="bg-black-100 rounded-2xl overflow-hidden">
+                                        {/* Blog Header */}
+                                        <div
+                                            className="p-4 md:p-6 cursor-pointer hover:bg-black-200 transition-colors"
+                                            onClick={() => setExpandedBlog(expandedBlog === blog.id ? null : blog.id)}
+                                        >
+                                            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3">
+                                                <div className="flex gap-3 md:gap-4">
+                                                    {blog.cover_image && (
+                                                        <img src={blog.cover_image} alt="" className="w-16 h-16 md:w-20 md:h-20 object-cover rounded-lg flex-shrink-0" />
+                                                    )}
+                                                    <div className="min-w-0">
+                                                        <h3 className="text-base md:text-xl font-bold flex items-center gap-2 flex-wrap">
+                                                            <span className="truncate">{blog.title}</span>
+                                                            {blog.featured && <Star className="text-yellow-500 flex-shrink-0" size={16} fill="currentColor" />}
+                                                        </h3>
+                                                        <p className="text-secondary text-xs md:text-sm mt-1">
+                                                            {blog.category && <span className="bg-violet-500/20 text-violet-400 px-2 py-0.5 rounded mr-2">{blog.category}</span>}
+                                                            {formatDate(blog.created_at)} • {blog.reading_time || 5} min
+                                                        </p>
+                                                        {blog.tags?.length > 0 && (
+                                                            <div className="hidden md:flex gap-1 mt-2 flex-wrap">
+                                                                {blog.tags.map((tag, i) => (
+                                                                    <span key={i} className="bg-tertiary text-xs px-2 py-1 rounded">{tag}</span>
+                                                                ))}
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                                <div className="flex items-center gap-2 self-end sm:self-start">
+                                                    <span className={`px-2 md:px-3 py-1 rounded-full text-xs font-bold ${blog.published ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}`}>
+                                                        {blog.published ? 'Published' : 'Draft'}
+                                                    </span>
+                                                    {expandedBlog === blog.id ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* Expanded Actions */}
+                                        {expandedBlog === blog.id && (
+                                            <div className="px-4 md:px-6 pb-4 md:pb-6 pt-2 border-t border-gray-800">
+                                                {blog.excerpt && (
+                                                    <p className="text-secondary mb-4 text-sm">{blog.excerpt}</p>
+                                                )}
+                                                <div className="flex flex-wrap gap-2 md:gap-3">
+                                                    <button
+                                                        onClick={() => handleEdit(blog)}
+                                                        className="flex items-center gap-2 bg-violet-600 hover:bg-violet-700 px-3 md:px-4 py-2 rounded-lg transition-colors text-sm"
+                                                    >
+                                                        <Pencil size={16} /> Edit
+                                                    </button>
+                                                    <button
+                                                        onClick={() => togglePublish(blog)}
+                                                        className={`flex items-center gap-2 px-3 md:px-4 py-2 rounded-lg transition-colors text-sm ${blog.published ? 'bg-orange-600 hover:bg-orange-700' : 'bg-green-600 hover:bg-green-700'}`}
+                                                    >
+                                                        {blog.published ? <EyeOff size={16} /> : <Eye size={16} />}
+                                                        <span className="hidden sm:inline">{blog.published ? 'Unpublish' : 'Publish'}</span>
+                                                    </button>
+                                                    <button
+                                                        onClick={() => toggleFeatured(blog)}
+                                                        className={`flex items-center gap-2 px-3 md:px-4 py-2 rounded-lg transition-colors text-sm ${blog.featured ? 'bg-yellow-600 hover:bg-yellow-700' : 'bg-gray-600 hover:bg-gray-700'}`}
+                                                    >
+                                                        <Star size={16} fill={blog.featured ? "currentColor" : "none"} />
+                                                        <span className="hidden sm:inline">{blog.featured ? 'Unfeature' : 'Feature'}</span>
+                                                    </button>
+                                                    <a
+                                                        href={`/blog/${blog.slug}`}
+                                                        target="_blank"
+                                                        className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 px-3 md:px-4 py-2 rounded-lg transition-colors text-sm"
+                                                    >
+                                                        <Eye size={16} /> <span className="hidden sm:inline">View</span>
+                                                    </a>
+                                                    <button
+                                                        onClick={() => handleDelete(blog.id)}
+                                                        className="flex items-center gap-2 bg-red-600 hover:bg-red-700 px-3 md:px-4 py-2 rounded-lg transition-colors text-sm"
+                                                    >
+                                                        <Trash2 size={16} /> <span className="hidden sm:inline">Delete</span>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+                                ))
+                            )}
+                        </div>
+                    )}
+
+                    {/* CREATE/EDIT VIEW */}
+                    {(view === 'create' || view === 'edit') && (
+                        <div className="max-w-5xl space-y-4 md:space-y-6">
+                            {/* Title */}
+                            <div>
+                                <label className="block text-secondary mb-2 text-sm md:text-base">Title *</label>
+                                <input
+                                    type="text"
+                                    value={form.title}
+                                    onChange={(e) => setForm({ ...form, title: e.target.value })}
+                                    placeholder="Enter blog title..."
+                                    className="w-full bg-tertiary py-3 md:py-4 px-4 md:px-6 rounded-lg text-white text-base md:text-xl outline-none font-bold"
+                                />
+                            </div>
+
+                            {/* Cover Image */}
+                            <div>
+                                <label className="block text-secondary mb-2 text-sm md:text-base">Cover Image</label>
+                                <div className="flex flex-col sm:flex-row gap-3 md:gap-4 sm:items-center">
+                                    {form.cover_image && (
+                                        <img src={form.cover_image} alt="Cover" className="w-full sm:w-32 h-32 sm:h-20 object-cover rounded-lg" />
+                                    )}
+                                    <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 flex-1">
+                                        <input
+                                            type="file"
+                                            accept="image/*"
+                                            onChange={handleCoverUpload}
+                                            className="hidden"
+                                            id="cover-upload"
+                                        />
+                                        <label
+                                            htmlFor="cover-upload"
+                                            className="bg-tertiary hover:bg-[#1f1b3c] py-3 px-6 rounded-lg cursor-pointer transition-colors text-center"
+                                        >
+                                            {coverUploading ? 'Uploading...' : 'Upload'}
+                                        </label>
+                                        <span className="text-secondary text-center">or</span>
+                                        <input
+                                            type="text"
+                                            value={form.cover_image}
+                                            onChange={(e) => setForm({ ...form, cover_image: e.target.value })}
+                                            placeholder="Paste image URL..."
+                                            className="flex-1 bg-tertiary py-3 px-4 rounded-lg text-white outline-none"
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Category & Reading Time */}
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6">
+                                <div>
+                                    <label className="block text-secondary mb-2 text-sm md:text-base">Category</label>
+                                    <select
+                                        value={form.category}
+                                        onChange={(e) => setForm({ ...form, category: e.target.value })}
+                                        className="w-full bg-tertiary py-3 px-4 rounded-lg text-white outline-none"
+                                    >
+                                        <option value="">Select Category</option>
+                                        {categories.map((cat) => (
+                                            <option key={cat} value={cat}>{cat}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="block text-secondary mb-2 text-sm md:text-base">Reading Time (min)</label>
+                                    <input
+                                        type="number"
+                                        value={form.reading_time}
+                                        onChange={(e) => setForm({ ...form, reading_time: parseInt(e.target.value) || 1 })}
+                                        min="1"
+                                        className="w-full bg-tertiary py-3 px-4 rounded-lg text-white outline-none"
+                                    />
+                                </div>
+                            </div>
+
+                            {/* Tags */}
+                            <div>
+                                <label className="block text-secondary mb-2 text-sm md:text-base">Tags</label>
+                                <div className="flex gap-2 flex-wrap mb-2">
+                                    {form.tags.map((tag, i) => (
+                                        <span key={i} className="bg-violet-500/20 text-violet-400 px-3 py-1 rounded-full flex items-center gap-1 text-sm">
+                                            {tag}
+                                            <X size={14} className="cursor-pointer" onClick={() => handleRemoveTag(tag)} />
+                                        </span>
+                                    ))}
+                                </div>
+                                <div className="flex gap-2">
+                                    <input
+                                        type="text"
+                                        value={tagInput}
+                                        onChange={(e) => setTagInput(e.target.value)}
+                                        onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddTag())}
+                                        placeholder="Add a tag..."
+                                        className="flex-1 bg-tertiary py-3 px-4 rounded-lg text-white outline-none"
+                                    />
+                                    <button
+                                        onClick={handleAddTag}
+                                        className="bg-violet-600 hover:bg-violet-700 px-4 rounded-lg"
+                                    >
+                                        Add
+                                    </button>
+                                </div>
+                            </div>
+
+                            {/* Excerpt */}
+                            <div>
+                                <label className="block text-secondary mb-2 text-sm md:text-base">Excerpt / Short Description</label>
+                                <textarea
+                                    value={form.excerpt}
+                                    onChange={(e) => setForm({ ...form, excerpt: e.target.value })}
+                                    placeholder="Brief description of the blog..."
+                                    rows={3}
+                                    className="w-full bg-tertiary py-3 px-4 rounded-lg text-white outline-none resize-none"
+                                />
+                            </div>
+
+                            {/* Content */}
+                            <div>
+                                <label className="block text-secondary mb-2 text-sm md:text-base">Content *</label>
+                                <div className="rounded-lg overflow-hidden">
+                                    <RichTextEditor
+                                        initialValue={form.content}
+                                        onEditorChange={handleContentChange}
+                                    />
+                                </div>
+                            </div>
+
+                            {/* Options */}
+                            <div className="flex flex-col sm:flex-row gap-4 md:gap-6">
+                                <label className="flex items-center gap-2 cursor-pointer">
+                                    <input
+                                        type="checkbox"
+                                        checked={form.published}
+                                        onChange={(e) => setForm({ ...form, published: e.target.checked })}
+                                        className="w-5 h-5 rounded"
+                                    />
+                                    <span>Publish Immediately</span>
+                                </label>
+                                <label className="flex items-center gap-2 cursor-pointer">
+                                    <input
+                                        type="checkbox"
+                                        checked={form.featured}
+                                        onChange={(e) => setForm({ ...form, featured: e.target.checked })}
+                                        className="w-5 h-5 rounded"
+                                    />
+                                    <span>Featured Blog</span>
+                                </label>
+                            </div>
+
+                            {/* Save Button */}
+                            <div className="flex flex-col sm:flex-row gap-3 md:gap-4 pt-4">
+                                <button
+                                    onClick={handleSave}
+                                    disabled={saving}
+                                    className="bg-green-600 hover:bg-green-700 py-3 px-8 rounded-lg font-bold transition-colors w-full sm:w-auto"
+                                >
+                                    {saving ? 'Saving...' : (editingBlog ? 'Update Blog' : 'Create Blog')}
+                                </button>
+                                <button
+                                    onClick={handleCancel}
+                                    className="bg-gray-600 hover:bg-gray-700 py-3 px-8 rounded-lg font-bold transition-colors w-full sm:w-auto"
+                                >
+                                    Cancel
+                                </button>
+                            </div>
+                        </div>
+                    )}
+                </div>
             </div>
         </div>
     );
