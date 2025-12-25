@@ -282,7 +282,7 @@ const projects = [
         ],
         image: "https://placehold.co/600x400?text=Astrologer+Website",
         source_code_link: "", // No Github link provided
-        live_link: "https://regal-dieffenbachia-86b540.netlify.app/",
+        live_link: "https://astrologer-template.netlify.app/",
     },
 ];
 
