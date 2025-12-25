@@ -75,7 +75,7 @@ const BlogDetails = () => {
                     </div>
                 )}
 
-                <div className={`max-w-4xl mx-auto px-6 ${blog.cover_image ? '-mt-32 relative z-10' : 'pt-32'}`}>
+                <main className={`max-w-4xl mx-auto px-6 ${blog.cover_image ? '-mt-32 relative z-10' : 'pt-32'}`}>
                     {/* Back Button */}
                     <Link
                         to="/blog"
@@ -182,7 +182,7 @@ const BlogDetails = () => {
                             </a>
                         </div>
                     </div>
-                </div>
+                </main>
 
                 <Footer />
             </div>

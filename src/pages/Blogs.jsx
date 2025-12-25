@@ -103,7 +103,7 @@ const Blogs = () => {
                     </div>
                 </div>
 
-                <div className={`${styles.padding} max-w-7xl mx-auto`}>
+                <main className={`${styles.padding} max-w-7xl mx-auto`}>
                     {loading ? (
                         <p className="text-white">Loading articles...</p>
                     ) : (
@@ -117,7 +117,7 @@ const Blogs = () => {
                             )}
                         </div>
                     )}
-                </div>
+                </main>
             </div>
         </>
     );

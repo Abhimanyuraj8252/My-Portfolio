@@ -9,7 +9,7 @@ const TermsAndConditions = () => {
 
     return (
         <div className="bg-primary min-h-screen py-24 px-6 sm:px-16">
-            <div className="max-w-4xl mx-auto">
+            <main className="max-w-4xl mx-auto">
                 <Link to="/" className="text-secondary hover:text-white mb-6 inline-block">
                     &larr; Back to Home
                 </Link>
@@ -43,7 +43,7 @@ const TermsAndConditions = () => {
                         These Terms shall be governed and construed in accordance with the laws of India, without regard to its conflict of law provisions.
                     </p>
                 </section>
-            </div>
+            </main>
         </div>
     );
 };

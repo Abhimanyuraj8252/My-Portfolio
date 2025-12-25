@@ -9,7 +9,7 @@ const PrivacyPolicy = () => {
 
     return (
         <div className="bg-primary min-h-screen py-24 px-6 sm:px-16">
-            <div className="max-w-4xl mx-auto">
+            <main className="max-w-4xl mx-auto">
                 <Link to="/" className="text-secondary hover:text-white mb-6 inline-block">
                     &larr; Back to Home
                 </Link>
@@ -54,7 +54,7 @@ const PrivacyPolicy = () => {
                         If you have any questions about this privacy policy, please contact us via the contact form on the homepage.
                     </p>
                 </section>
-            </div>
+            </main>
         </div>
     );
 };

@@ -45,7 +45,7 @@ const Hero = () => {
                         transition={{ duration: 0.8, delay: 0.5 }}
                         className="mt-10 max-w-xl p-6 bg-white/5 backdrop-blur-lg border border-white/10 rounded-2xl shadow-card hover:shadow-cyan-500/20 transition-all duration-300"
                     >
-                        <h3 className="text-xl font-bold text-white mb-2">Digital Creator</h3>
+                        <h2 className="text-xl font-bold text-white mb-2">Digital Creator</h2>
                         <p className="text-secondary text-[16px] leading-[28px]">
                             Building immersive digital experiences that merge art with code.
                             Specializing in React, 3D WebGL, and modern UI/UX design.
@@ -61,7 +61,7 @@ const Hero = () => {
             {/* Changed from ComputersCanvas to nothing or just the scroll indicator */}
 
             <div className='absolute xs:bottom-10 bottom-32 w-full flex justify-center items-center z-20'>
-                <a href='#about'>
+                <a href='#about' aria-label='Scroll to About section'>
                     <div className='w-[35px] h-[64px] rounded-3xl border-4 border-secondary flex justify-center items-start p-2'>
                         <motion.div
                             animate={{

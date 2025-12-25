@@ -99,7 +99,7 @@ const TestimonialsPage = () => {
 
     return (
         <div className="pt-28 pb-10 bg-primary min-h-screen">
-            <div className={`${styles.padding} max-w-7xl mx-auto relative z-0`}>
+            <main className={`${styles.padding} max-w-7xl mx-auto relative z-0`}>
                 <motion.div variants={textVariant()}>
                     <p className={styles.sectionSubText}>What our clients say</p>
                     <h2 className={styles.sectionHeadText}>Testimonials.</h2>
@@ -188,7 +188,7 @@ const TestimonialsPage = () => {
                         <p className="text-secondary text-center w-full">No reviews yet.</p>
                     )}
                 </div>
-            </div>
+            </main>
         </div>
     );
 };

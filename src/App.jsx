@@ -56,15 +56,17 @@ const App = () => {
                           <Navbar />
                           <Hero />
                         </div>
-                        <About />
-                        <Experience />
-                        <Tech />
-                        <Works />
-                        <Feed />
-                        <div className='relative z-0'>
-                          <Contact />
-                          <StarsCanvas />
-                        </div>
+                        <main>
+                          <About />
+                          <Experience />
+                          <Tech />
+                          <Works />
+                          <Feed />
+                          <div className='relative z-0'>
+                            <Contact />
+                            <StarsCanvas />
+                          </div>
+                        </main>
                         <Footer />
                       </>
                     }

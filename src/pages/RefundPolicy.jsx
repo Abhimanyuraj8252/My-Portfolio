@@ -9,7 +9,7 @@ const RefundPolicy = () => {
 
     return (
         <div className="bg-primary min-h-screen py-24 px-6 sm:px-16">
-            <div className="max-w-4xl mx-auto">
+            <main className="max-w-4xl mx-auto">
                 <Link to="/" className="text-secondary hover:text-white mb-6 inline-block">
                     &larr; Back to Home
                 </Link>
@@ -43,7 +43,7 @@ const RefundPolicy = () => {
                         If you have any questions about our Returns and Refunds Policy, please contact us via the contact page.
                     </p>
                 </section>
-            </div>
+            </main>
         </div>
     );
 };

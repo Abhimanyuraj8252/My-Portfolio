@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import React, { useRef, useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
 import { styles } from "../styles";
@@ -12,7 +12,7 @@ import { supabase } from "../lib/supabase/client";
 // const TEMPLATE_ID = "template_id";
 // const PUBLIC_KEY = "public_key";
 
-const ThankYouModal = ({ isOpen, onClose }) => {
+const ThankYouModal = React.memo(({ isOpen, onClose }) => {
     return (
         <AnimatePresence>
             {isOpen && (
@@ -59,17 +59,17 @@ const Contact = () => {
     const [loading, setLoading] = useState(false);
     const [showThankYou, setShowThankYou] = useState(false);
 
-    const handleChange = (e) => {
+    const handleChange = useCallback((e) => {
         const { target } = e;
         const { name, value } = target;
 
-        setForm({
-            ...form,
+        setForm((prev) => ({
+            ...prev,
             [name]: value,
-        });
-    };
+        }));
+    }, []);
 
-    const handleSubmit = async (e) => {
+    const handleSubmit = useCallback(async (e) => {
         e.preventDefault();
         setLoading(true);
 
@@ -124,7 +124,7 @@ const Contact = () => {
             console.error("Form error:", error);
             alert("Something went wrong. Please try again.");
         }
-    };
+    }, [form]);
 
     return (
         <div

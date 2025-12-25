@@ -32,9 +32,9 @@ const ServiceCard = ({ index, title, icon }) => (
           className='w-16 h-16 object-contain'
         /> */}
 
-                <h3 className='text-white text-[20px] font-bold text-center'>
+                <p className='text-white text-[20px] font-bold text-center'>
                     {title}
-                </h3>
+                </p>
             </div>
         </motion.div>
     </div>
