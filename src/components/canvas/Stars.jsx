@@ -50,11 +50,9 @@ const Stars = (props) => {
 
 const StarsCanvas = () => {
     return (
-        <div className='w-full h-auto absolute inset-0 z-[-1]'>
+        <div className='w-full h-auto absolute inset-0 z-[-1] pointer-events-none'>
             <Canvas 
                 camera={{ position: [0, 0, 1] }}
-                eventSource={typeof document !== 'undefined' ? document.getElementById('root') : undefined}
-                eventPrefix="client"
             >
                 <Suspense fallback={null}>
                     <Stars />

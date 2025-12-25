@@ -46,8 +46,10 @@ const BallCanvas = ({ icon }) => {
             frameloop='demand'
             dpr={[1, 2]}
             gl={{ preserveDrawingBuffer: true }}
-            eventSource={typeof document !== 'undefined' ? document.getElementById('root') : undefined}
-            eventPrefix="client"
+            onCreated={({ gl }) => {
+                // Allow touch scrolling on mobile while keeping orbit controls usable
+                gl.domElement.style.touchAction = 'pan-y';
+            }}
         >
             <Suspense fallback={<CanvasLoader />}>
                 <OrbitControls enableZoom={false} makeDefault />

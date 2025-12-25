@@ -50,8 +50,10 @@ const EarthCanvas = () => {
                 far: 200,
                 position: [-4, 3, 6],
             }}
-            eventSource={typeof document !== 'undefined' ? document.getElementById('root') : undefined}
-            eventPrefix="client"
+            onCreated={({ gl }) => {
+                // Keep scroll working on touch devices while allowing canvas interactions
+                gl.domElement.style.touchAction = 'pan-y';
+            }}
         >
             <Suspense fallback={<CanvasLoader />}>
                 <OrbitControls
