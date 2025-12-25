@@ -50,7 +50,7 @@ const Hero = () => {
                             Freelance Web & App Developer with expertise in building scalable applications.
                             CSE student passionate about crafting innovative digital solutions.
                         </p>
-                        <div className="mt-4 flex gap-3">
+                        <div className="mt-4 flex flex-wrap gap-2 sm:gap-3">
                             <span className="px-3 py-1 text-xs font-semibold rounded-full bg-violet-500/20 text-violet-300 border border-violet-500/50">Freelancer</span>
                             <span className="px-3 py-1 text-xs font-semibold rounded-full bg-blue-500/20 text-blue-300 border border-blue-500/50">Web & App Dev</span>
                             <span className="px-3 py-1 text-xs font-semibold rounded-full bg-green-500/20 text-green-300 border border-green-500/50">CSE</span>

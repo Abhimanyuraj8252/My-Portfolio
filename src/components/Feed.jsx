@@ -152,7 +152,7 @@ const Feed = () => {
                         initial={{ opacity: 0, y: -20 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -20 }}
-                        className="mt-8 bg-black-200/50 backdrop-blur-sm p-6 sm:p-8 rounded-2xl border border-white/10 max-w-2xl"
+                        className="mt-8 bg-black-200/50 backdrop-blur-sm p-4 sm:p-6 md:p-8 rounded-2xl border border-white/10 w-full max-w-full sm:max-w-2xl overflow-hidden"
                     >
                         <h3 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
                             <span className="text-2xl">✍️</span> Share Your Experience
@@ -194,7 +194,7 @@ const Feed = () => {
                                             onChange={handleChange}
                                             placeholder="What's your name?"
                                             required
-                                            className="bg-tertiary py-3 px-4 placeholder:text-secondary text-white rounded-lg outline-none border border-transparent focus:border-violet-500 transition-all font-medium"
+                                            className="w-full bg-tertiary py-3 px-4 placeholder:text-secondary text-white rounded-lg outline-none border border-transparent focus:border-violet-500 transition-all font-medium"
                                         />
                                     </label>
 
@@ -206,7 +206,7 @@ const Feed = () => {
                                             value={form.designation}
                                             onChange={handleChange}
                                             placeholder="e.g. CEO of Company"
-                                            className="bg-tertiary py-3 px-4 placeholder:text-secondary text-white rounded-lg outline-none border border-transparent focus:border-violet-500 transition-all font-medium"
+                                            className="w-full bg-tertiary py-3 px-4 placeholder:text-secondary text-white rounded-lg outline-none border border-transparent focus:border-violet-500 transition-all font-medium"
                                         />
                                     </label>
                                 </div>
@@ -220,7 +220,7 @@ const Feed = () => {
                                         onChange={handleChange}
                                         placeholder="Share your experience working with me..."
                                         required
-                                        className="bg-tertiary py-3 px-4 placeholder:text-secondary text-white rounded-lg outline-none border border-transparent focus:border-violet-500 transition-all font-medium resize-none"
+                                        className="w-full bg-tertiary py-3 px-4 placeholder:text-secondary text-white rounded-lg outline-none border border-transparent focus:border-violet-500 transition-all font-medium resize-none"
                                     />
                                 </label>
 
