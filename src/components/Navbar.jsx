@@ -26,12 +26,16 @@ const Navbar = () => {
         return () => window.removeEventListener("scroll", handleScroll, { passive: true });
     }, []);
 
-    const handleNavClick = (navId, navTitle) => {
+    const handleNavClick = (navId, navTitle, e) => {
+        if (e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
         setActive(navTitle);
         setToggle(false);
         
         if (location.pathname !== '/') {
-            navigate('/');
+            navigate('/', { replace: false });
             setTimeout(() => {
                 const element = document.getElementById(navId);
                 if (element) {
@@ -106,26 +110,32 @@ const Navbar = () => {
                                     key={nav.id}
                                     className={`font-poppins font-medium cursor-pointer text-[16px] ${active === nav.title ? "text-white" : "text-secondary"
                                         }`}
-                                    onClick={() => handleNavClick(nav.id, nav.title)}
+                                    onClick={(e) => handleNavClick(nav.id, nav.title, e)}
                                 >
                                     <span>{nav.title}</span>
                                 </li>
                             ))}
                             <li
                                 className="font-poppins font-medium cursor-pointer text-[16px] text-secondary"
-                                onClick={() => {
-                                    setToggle(!toggle);
+                                onClick={(e) => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    setToggle(false);
+                                    navigate("/blog");
                                 }}
                             >
-                                <Link to="/blog">Blog</Link>
+                                <span>Blog</span>
                             </li>
                             <li
                                 className="font-poppins font-medium cursor-pointer text-[16px] text-secondary"
-                                onClick={() => {
-                                    setToggle(!toggle);
+                                onClick={(e) => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    setToggle(false);
+                                    navigate("/testimonials");
                                 }}
                             >
-                                <Link to="/testimonials">Testimonials</Link>
+                                <span>Testimonials</span>
                             </li>
                         </ul>
                     </div>
