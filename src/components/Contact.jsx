@@ -43,7 +43,7 @@ const ThankYouModal = React.memo(({ isOpen, onClose }) => {
             )}
         </AnimatePresence>
     );
-};
+});
 
 const Contact = () => {
     const formRef = useRef();
