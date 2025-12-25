@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
+import { FaStar } from "react-icons/fa";
 
 import { styles } from "../styles";
 import { SectionWrapper } from "../hoc";
@@ -25,8 +26,10 @@ const FeedbackCard = ({
         <div className='mt-1'>
             <p className='text-white tracking-wider text-[18px]'>{message}</p>
 
-            <div className="flex gap-1 mt-2 mb-4">
-                {"★".repeat(rating || 5)}
+            <div className="flex gap-1 mt-2 mb-4 text-yellow-500">
+                {[...Array(5)].map((_, i) => (
+                    <FaStar key={i} className={i < (rating || 5) ? "text-yellow-500" : "text-gray-600"} />
+                ))}
             </div>
 
             <div className='mt-7 flex justify-between items-center gap-1'>
@@ -57,36 +60,181 @@ const FeedbackCard = ({
 
 const Feed = () => {
     const [reviews, setReviews] = useState([]);
+    const [showForm, setShowForm] = useState(false);
+    const [form, setForm] = useState({
+        name: "",
+        rating: 5,
+        message: "",
+        designation: ""
+    });
+    const [loading, setLoading] = useState(false);
+    const [submitted, setSubmitted] = useState(false);
 
     useEffect(() => {
-        const fetchReviews = async () => {
-            const { data, error } = await supabase
-                .from('reviews')
-                .select('*')
-                .eq('approved', true) // Only show approved reviews
-                .order('created_at', { ascending: false })
-                .limit(6);
-
-            if (!error && data.length > 0) {
-                setReviews(data);
-            } else {
-                // Fallback to constants if no DB data
-                setReviews(testimonials);
-            }
-        };
-
         fetchReviews();
     }, []);
+
+    const fetchReviews = async () => {
+        const { data, error } = await supabase
+            .from('reviews')
+            .select('*')
+            .eq('approved', true)
+            .order('created_at', { ascending: false })
+            .limit(6);
+
+        if (!error && data.length > 0) {
+            setReviews(data);
+        } else {
+            setReviews(testimonials);
+        }
+    };
+
+    const handleChange = (e) => {
+        const { name, value } = e.target;
+        setForm({ ...form, [name]: value });
+    };
+
+    const handleRating = (value) => {
+        setForm({ ...form, rating: value });
+    };
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        setLoading(true);
+
+        const { error } = await supabase
+            .from('reviews')
+            .insert([{
+                name: form.name,
+                rating: form.rating,
+                message: form.message,
+                designation: form.designation,
+                approved: false
+            }]);
+
+        setLoading(false);
+
+        if (!error) {
+            setSubmitted(true);
+            setForm({ name: "", rating: 5, message: "", designation: "" });
+            setTimeout(() => {
+                setSubmitted(false);
+                setShowForm(false);
+            }, 4000);
+        } else {
+            alert("Error submitting review. Please try again.");
+        }
+    };
 
     return (
         <div className={`mt-12 bg-black-100 rounded-[20px]`}>
             <div
                 className={`bg-tertiary rounded-2xl ${styles.padding} min-h-[300px]`}
             >
-                <motion.div variants={textVariant()}>
-                    <p className={styles.sectionSubText}>What others say</p>
-                    <h2 className={styles.sectionHeadText}>Testimonials.</h2>
+                <motion.div variants={textVariant()} className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
+                    <div>
+                        <p className={styles.sectionSubText}>What others say</p>
+                        <h2 className={styles.sectionHeadText}>Testimonials.</h2>
+                    </div>
+                    <motion.button
+                        onClick={() => setShowForm(!showForm)}
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        className="bg-gradient-to-r from-violet-600 to-purple-600 py-3 px-6 rounded-xl text-white font-bold shadow-lg shadow-purple-500/30 hover:shadow-purple-500/50 transition-all flex items-center gap-2 w-fit"
+                    >
+                        <FaStar /> {showForm ? "Close Form" : "Leave a Review"}
+                    </motion.button>
                 </motion.div>
+
+                {/* Review Form */}
+                {showForm && (
+                    <motion.div
+                        initial={{ opacity: 0, y: -20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -20 }}
+                        className="mt-8 bg-black-200/50 backdrop-blur-sm p-6 sm:p-8 rounded-2xl border border-white/10 max-w-2xl"
+                    >
+                        <h3 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
+                            <span className="text-2xl">✍️</span> Share Your Experience
+                        </h3>
+
+                        {submitted ? (
+                            <motion.div
+                                initial={{ scale: 0.9 }}
+                                animate={{ scale: 1 }}
+                                className="bg-green-500/20 border border-green-500 p-6 rounded-xl text-center"
+                            >
+                                <div className="text-4xl mb-2">🎉</div>
+                                <h4 className="text-white font-bold text-xl">Thank You!</h4>
+                                <p className="text-secondary mt-2">Your review has been submitted for approval.</p>
+                            </motion.div>
+                        ) : (
+                            <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+                                <div className="flex flex-col gap-2">
+                                    <label className="text-white font-medium">Rating</label>
+                                    <div className="flex gap-2">
+                                        {[1, 2, 3, 4, 5].map((star) => (
+                                            <FaStar
+                                                key={star}
+                                                size={28}
+                                                className={`cursor-pointer transition-all hover:scale-110 ${star <= form.rating ? "text-yellow-500" : "text-gray-600"}`}
+                                                onClick={() => handleRating(star)}
+                                            />
+                                        ))}
+                                    </div>
+                                </div>
+
+                                <div className="grid sm:grid-cols-2 gap-4">
+                                    <label className="flex flex-col">
+                                        <span className="text-white font-medium mb-2">Your Name *</span>
+                                        <input
+                                            type="text"
+                                            name="name"
+                                            value={form.name}
+                                            onChange={handleChange}
+                                            placeholder="What's your name?"
+                                            required
+                                            className="bg-tertiary py-3 px-4 placeholder:text-secondary text-white rounded-lg outline-none border border-transparent focus:border-violet-500 transition-all font-medium"
+                                        />
+                                    </label>
+
+                                    <label className="flex flex-col">
+                                        <span className="text-white font-medium mb-2">Designation (Optional)</span>
+                                        <input
+                                            type="text"
+                                            name="designation"
+                                            value={form.designation}
+                                            onChange={handleChange}
+                                            placeholder="e.g. CEO of Company"
+                                            className="bg-tertiary py-3 px-4 placeholder:text-secondary text-white rounded-lg outline-none border border-transparent focus:border-violet-500 transition-all font-medium"
+                                        />
+                                    </label>
+                                </div>
+
+                                <label className="flex flex-col">
+                                    <span className="text-white font-medium mb-2">Your Review *</span>
+                                    <textarea
+                                        rows={4}
+                                        name="message"
+                                        value={form.message}
+                                        onChange={handleChange}
+                                        placeholder="Share your experience working with me..."
+                                        required
+                                        className="bg-tertiary py-3 px-4 placeholder:text-secondary text-white rounded-lg outline-none border border-transparent focus:border-violet-500 transition-all font-medium resize-none"
+                                    />
+                                </label>
+
+                                <button
+                                    type="submit"
+                                    disabled={loading}
+                                    className="bg-gradient-to-r from-violet-600 to-purple-600 py-3 px-8 rounded-xl outline-none w-fit text-white font-bold shadow-lg shadow-purple-500/30 hover:shadow-purple-500/50 hover:scale-[1.02] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                    {loading ? "Submitting..." : "Submit Review ✨"}
+                                </button>
+                            </form>
+                        )}
+                    </motion.div>
+                )}
             </div>
             <div className={`-mt-20 pb-14 ${styles.paddingX} flex flex-wrap gap-7`}>
                 {reviews.map((testimonial, index) => (
@@ -98,3 +246,4 @@ const Feed = () => {
 };
 
 export default SectionWrapper(Feed, "feed");
+

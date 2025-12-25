@@ -45,14 +45,15 @@ const Hero = () => {
                         transition={{ duration: 0.8, delay: 0.5 }}
                         className="mt-10 max-w-xl p-6 bg-white/5 backdrop-blur-lg border border-white/10 rounded-2xl shadow-card hover:shadow-cyan-500/20 transition-all duration-300"
                     >
-                        <h2 className="text-xl font-bold text-white mb-2">Digital Creator</h2>
+                        <h2 className="text-xl font-bold text-white mb-2">Software Engineer</h2>
                         <p className="text-secondary text-[16px] leading-[28px]">
-                            Building immersive digital experiences that merge art with code.
-                            Specializing in React, 3D WebGL, and modern UI/UX design.
+                            Freelance Web & App Developer with expertise in building scalable applications.
+                            CSE student passionate about crafting innovative digital solutions.
                         </p>
                         <div className="mt-4 flex gap-3">
-                            <span className="px-3 py-1 text-xs font-semibold rounded-full bg-violet-500/20 text-violet-300 border border-violet-500/50">Full Stack</span>
-                            <span className="px-3 py-1 text-xs font-semibold rounded-full bg-blue-500/20 text-blue-300 border border-blue-500/50">3D Visuals</span>
+                            <span className="px-3 py-1 text-xs font-semibold rounded-full bg-violet-500/20 text-violet-300 border border-violet-500/50">Freelancer</span>
+                            <span className="px-3 py-1 text-xs font-semibold rounded-full bg-blue-500/20 text-blue-300 border border-blue-500/50">Web & App Dev</span>
+                            <span className="px-3 py-1 text-xs font-semibold rounded-full bg-green-500/20 text-green-300 border border-green-500/50">CSE</span>
                         </div>
                     </motion.div>
                 </div>
