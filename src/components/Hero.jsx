@@ -7,17 +7,17 @@ import { styles } from "../styles";
 const Hero = () => {
     return (
         <section className={`relative w-full min-h-screen mx-auto overflow-hidden bg-primary`}>
-            {/* Animated Background Gradients */}
+            {/* Animated Background Gradients - Reduced for mobile performance */}
             <div className="absolute inset-0 top-0 z-0 overflow-hidden">
                 <motion.div
-                    animate={{ scale: [1, 1.2, 1], rotate: [0, 90, 0] }}
-                    transition={{ duration: 20, repeat: Infinity, repeatType: "mirror" }}
-                    className="absolute -top-[30%] -left-[10%] w-[70%] h-[70%] rounded-full purple-gradient opacity-20 blur-[120px]"
+                    animate={{ scale: [1, 1.1, 1] }}
+                    transition={{ duration: 25, repeat: Infinity, repeatType: "mirror", ease: "linear" }}
+                    className="absolute -top-[30%] -left-[10%] w-[70%] h-[70%] rounded-full purple-gradient opacity-20 blur-[100px] will-change-transform"
                 />
                 <motion.div
-                    animate={{ scale: [1, 1.1, 1], x: [0, 50, 0] }}
-                    transition={{ duration: 15, repeat: Infinity, repeatType: "mirror" }}
-                    className="absolute top-[20%] -right-[10%] w-[50%] h-[50%] rounded-full blue-gradient opacity-20 blur-[100px]"
+                    animate={{ scale: [1, 1.05, 1] }}
+                    transition={{ duration: 20, repeat: Infinity, repeatType: "mirror", ease: "linear" }}
+                    className="absolute top-[20%] -right-[10%] w-[50%] h-[50%] rounded-full blue-gradient opacity-20 blur-[80px] will-change-transform"
                 />
             </div>
 
@@ -57,7 +57,9 @@ const Hero = () => {
                                         src="/abhimanyu-hero.jpg"
                                         alt="Abhimanyu Raj"
                                         className="w-full h-full object-cover object-center scale-100"
-                                        loading="eager"
+                                        loading="lazy"
+                                        decoding="async"
+                                        fetchpriority="low"
                                         onError={(e) => { console.error('Image failed to load:', e.target.src); }}
                                     />
                                 </div>
@@ -110,6 +112,8 @@ const Hero = () => {
                                 src="/abhimanyu-hero.jpg"
                                 alt="Abhimanyu Raj"
                                 className="w-full h-full object-cover object-center transform group-hover:scale-110 transition-transform duration-700 ease-out"
+                                loading="lazy"
+                                decoding="async"
                             />
                             {/* Overlay gradient */}
                             <div className="absolute inset-0 bg-gradient-to-t from-primary/40 via-transparent to-transparent opacity-60" />
