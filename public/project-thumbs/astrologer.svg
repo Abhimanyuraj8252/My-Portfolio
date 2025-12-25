@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 675">
+  <defs>
+    <linearGradient id="a" x1="0%" x2="100%" y1="0%" y2="100%">
+      <stop offset="0%" stop-color="#0b1021"/>
+      <stop offset="100%" stop-color="#111827"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="675" fill="url(#a)"/>
+  <rect x="110" y="130" width="980" height="420" rx="30" fill="#0f172a" opacity="0.78"/>
+  <text x="600" y="260" fill="#fde68a" font-family="'Segoe UI', 'Inter', sans-serif" font-size="60" font-weight="700" text-anchor="middle">Astrologer Website</text>
+  <text x="600" y="330" fill="#fef3c7" font-family="'Segoe UI', 'Inter', sans-serif" font-size="34" text-anchor="middle">Consultations · Horoscopes</text>
+  <text x="600" y="400" fill="#e5e7eb" font-family="'Segoe UI', 'Inter', sans-serif" font-size="26" text-anchor="middle">Booking · Services · CTA</text>
+</svg>

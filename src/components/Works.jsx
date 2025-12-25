@@ -1,11 +1,17 @@
-import React from "react";
-// import Tilt from "react-tilt";
+import React, { useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { styles } from "../styles";
 import { projects } from "../constants";
 import { fadeIn, textVariant } from "../utils/motion";
 import { SectionWrapper } from "../hoc";
-import { Github } from "lucide-react";
+import { Github, Globe2 } from "lucide-react";
+
+const categories = [
+    { id: "all", label: "All" },
+    { id: "web", label: "Web" },
+    { id: "mobile", label: "Mobile" },
+    { id: "tools", label: "Tools" },
+];
 
 const ProjectCard = ({
     index,
@@ -15,61 +21,100 @@ const ProjectCard = ({
     image,
     source_code_link,
     live_link,
+    category,
+    featured,
 }) => {
+    const [imageError, setImageError] = useState(false);
+    const hasImage = Boolean(image) && !imageError;
+
     return (
-        <motion.div variants={fadeIn("up", "spring", index * 0.5, 0.75)}>
-            {/* Tilt Wrapper would go here */}
-            <div
-                className='bg-tertiary p-5 rounded-2xl sm:w-[360px] w-full'
-            >
-                <div className='relative w-full h-[230px]'>
-                    {/* Real Image would be: <img src={image} ... /> */}
-                    <div className="w-full h-full object-cover rounded-2xl bg-indigo-900 flex items-center justify-center text-6xl">
-                        🖥️
+        <div>
+            <div className='bg-tertiary p-5 rounded-2xl w-full shadow-card border border-white/5 hover:border-white/15 transition-colors duration-200'>
+                <div className='relative w-full h-[230px] overflow-hidden rounded-2xl bg-slate-900'>
+                    {hasImage ? (
+                        <img
+                            src={image}
+                            alt={name}
+                            className='w-full h-full object-cover'
+                            loading='lazy'
+                            decoding='async'
+                            onError={() => setImageError(true)}
+                        />
+                    ) : (
+                        <div className='w-full h-full flex items-center justify-center bg-gradient-to-br from-indigo-600 via-purple-600 to-cyan-500 text-5xl text-white'>
+                            🖥️
+                        </div>
+                    )}
+
+                    <div className='absolute top-3 left-3 flex gap-2'>
+                        <span className='px-3 py-1 text-xs font-semibold rounded-full bg-black/70 text-white uppercase tracking-wide'>
+                            {category}
+                        </span>
+                        {featured && (
+                            <span className='px-3 py-1 text-xs font-semibold rounded-full bg-emerald-500/90 text-white'>Featured</span>
+                        )}
                     </div>
 
-                    <div className='absolute inset-0 flex justify-end m-3 card-img_hover gap-2'>
+                    <div className='absolute inset-0 flex justify-end items-end gap-3 p-3 pointer-events-none'>
                         {source_code_link && (
-                            <div
+                            <button
+                                type='button'
                                 onClick={() => window.open(source_code_link, "_blank")}
-                                className='black-gradient w-10 h-10 rounded-full flex justify-center items-center cursor-pointer'
+                                className='pointer-events-auto inline-flex items-center gap-2 px-3 py-2 text-xs font-semibold rounded-full bg-black/80 text-white backdrop-blur-sm hover:bg-black'
                             >
-                                <Github size={20} color="white" />
-                            </div>
+                                <Github size={16} />
+                                Code
+                            </button>
                         )}
                         {live_link && (
-                            <div
+                            <button
+                                type='button'
                                 onClick={() => window.open(live_link, "_blank")}
-                                className='violet-gradient w-10 h-10 rounded-full flex justify-center items-center cursor-pointer font-bold text-xs'
+                                className='pointer-events-auto inline-flex items-center gap-2 px-3 py-2 text-xs font-semibold rounded-full bg-violet-500 text-white hover:bg-violet-600'
                             >
+                                <Globe2 size={16} />
                                 Live
-                            </div>
+                            </button>
                         )}
-
                     </div>
                 </div>
 
-                <div className='mt-5'>
-                    <h3 className='text-white font-bold text-[24px]'>{name}</h3>
-                    <p className='mt-2 text-secondary text-[14px]'>{description}</p>
+                <div className='mt-5 space-y-2'>
+                    <h3 className='text-white font-bold text-[20px]'>{name}</h3>
+                    <p className='text-secondary text-[14px]'>{description}</p>
                 </div>
 
                 <div className='mt-4 flex flex-wrap gap-2'>
                     {tags.map((tag) => (
-                        <p
+                        <span
                             key={`${name}-${tag.name}`}
-                            className={`text-[14px] ${tag.color}`}
+                            className={`text-[13px] ${tag.color} bg-white/5 px-2 py-1 rounded-full`}
                         >
                             #{tag.name}
-                        </p>
+                        </span>
                     ))}
                 </div>
             </div>
-        </motion.div>
+        </div>
     );
 };
 
 const Works = () => {
+    const [filter, setFilter] = useState("all");
+
+    const categoryCounts = useMemo(() => {
+        const counts = projects.reduce((acc, project) => {
+            acc[project.category] = (acc[project.category] || 0) + 1;
+            return acc;
+        }, {});
+        counts.all = projects.length;
+        return counts;
+    }, []);
+
+    const filteredProjects = filter === "all"
+        ? projects
+        : projects.filter((project) => project.category === filter);
+
     return (
         <>
             <motion.div variants={textVariant()}>
@@ -90,13 +135,40 @@ const Works = () => {
                 </motion.p>
             </div>
 
-            <div className='mt-20 flex flex-wrap gap-7 justify-center'>
-                {projects.map((project, index) => (
-                    <ProjectCard key={`project-${index}`} index={index} {...project} />
-                ))}
+            <div className='mt-10 flex flex-wrap gap-3'>
+                {categories.map((cat) => {
+                    const active = filter === cat.id;
+                    const count = categoryCounts[cat.id] || 0;
+                    return (
+                        <button
+                            key={cat.id}
+                            type='button'
+                            onClick={() => setFilter(cat.id)}
+                            aria-pressed={active}
+                            className={`px-4 py-2 rounded-full text-sm font-semibold border transition-colors duration-200 ${
+                                active
+                                    ? "bg-white text-primary border-white"
+                                    : "bg-white/5 text-white border-white/10 hover:border-white/30"
+                            }`}
+                        >
+                            {cat.label}
+                            <span className='ml-2 text-xs opacity-80'>({count})</span>
+                        </button>
+                    );
+                })}
+            </div>
+
+            <div className='mt-12 grid gap-7 w-full grid-cols-1 sm:grid-cols-2 xl:grid-cols-3'>
+                {filteredProjects.length === 0 ? (
+                    <div className='col-span-full text-center text-secondary'>No projects in this category yet.</div>
+                ) : (
+                    filteredProjects.map((project, index) => (
+                        <ProjectCard key={`${project.name}-${project.category}`} index={index} {...project} />
+                    ))
+                )}
             </div>
         </>
     );
 };
 
-export default SectionWrapper(Works, "");
+export default SectionWrapper(Works, "projects");

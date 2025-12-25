@@ -59,7 +59,7 @@ const Hero = () => {
                                         className="w-full h-full object-cover object-center scale-100"
                                         loading="lazy"
                                         decoding="async"
-                                        fetchpriority="low"
+                                        fetchPriority="low"
                                         onError={(e) => { console.error('Image failed to load:', e.target.src); }}
                                     />
                                 </div>
