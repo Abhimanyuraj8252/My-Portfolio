@@ -52,11 +52,12 @@ const App = () => {
                     path='/'
                     element={
                       <>
-                        <div className='relative z-10 bg-hero-pattern bg-cover bg-no-repeat bg-center pointer-events-auto'>
-                          <Navbar />
+                        {/* Navbar must be OUTSIDE any z-indexed wrapper */}
+                        <Navbar />
+                        <div className='bg-hero-pattern bg-cover bg-no-repeat bg-center'>
                           <Hero />
                         </div>
-                        <main className='relative z-10 pointer-events-auto'>
+                        <main>
                           <About />
                           <Experience />
                           <Tech />
@@ -64,9 +65,7 @@ const App = () => {
                           <Feed />
                           <div className='relative'>
                             <Contact />
-                            <div className='fixed inset-0 z-[-1] pointer-events-none'>
-                              <StarsCanvas />
-                            </div>
+                            <StarsCanvas />
                           </div>
                         </main>
                         <Footer />
