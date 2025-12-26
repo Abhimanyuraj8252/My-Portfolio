@@ -34,38 +34,59 @@ const Navbar = () => {
         setActive(navTitle);
         setToggle(false);
 
+        // Scroll to section with robust mobile support
         const scrollToSection = () => {
             const element = document.getElementById(navId);
             if (element) {
-                // scrollIntoView works correctly with body overflow settings
-                element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                // Use requestAnimationFrame for smoother mobile scrolling
+                requestAnimationFrame(() => {
+                    element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                });
                 return true;
             }
             return false;
         };
 
-        // If already on home page, scroll directly
-        if (location.pathname === '/') {
+        // Fallback scroll positions for when lazy loading is slow
+        const fallbackScrollPositions = {
+            'about': 0.1,
+            'experience': 0.2,
+            'projects': 0.45,
+            'contact': 0.85
+        };
+
+        const scrollWithFallback = () => {
             if (!scrollToSection()) {
-                // If element not found (lazy loading), poll for it
+                // Extended polling for slower mobile connections (10 seconds)
                 let attempts = 0;
+                const maxAttempts = 100;
                 const checkInterval = setInterval(() => {
-                    if (scrollToSection() || attempts > 30) {
+                    if (scrollToSection()) {
                         clearInterval(checkInterval);
+                    } else if (attempts >= maxAttempts) {
+                        clearInterval(checkInterval);
+                        // Fallback: scroll to approximate position based on page percentage
+                        const fallback = fallbackScrollPositions[navId];
+                        if (fallback) {
+                            const scrollHeight = document.body.scrollHeight || document.documentElement.scrollHeight;
+                            const targetY = scrollHeight * fallback;
+                            window.scrollTo({ top: targetY, behavior: 'smooth' });
+                        }
                     }
                     attempts++;
                 }, 100);
             }
+        };
+
+        // If already on home page, scroll directly
+        if (location.pathname === '/') {
+            // Small delay for mobile menu close animation
+            setTimeout(scrollWithFallback, 100);
         } else {
             // Navigate to home first, then scroll
             navigate('/');
-            let attempts = 0;
-            const checkInterval = setInterval(() => {
-                if (scrollToSection() || attempts > 30) {
-                    clearInterval(checkInterval);
-                }
-                attempts++;
-            }, 100);
+            // Wait for navigation and initial render
+            setTimeout(scrollWithFallback, 300);
         }
     };
 
