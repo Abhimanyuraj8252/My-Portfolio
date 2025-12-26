@@ -34,49 +34,40 @@ const Navbar = () => {
         setActive(navTitle);
         setToggle(false);
 
-        const scrollToElement = () => {
+        const scrollToSection = () => {
             const element = document.getElementById(navId);
             if (element) {
-                // Use getBoundingClientRect for more reliable mobile scrolling
-                const elementPosition = element.getBoundingClientRect().top;
-                const offsetPosition = elementPosition + window.pageYOffset - 80; // 80px offset for navbar
-
-                window.scrollTo({
-                    top: offsetPosition,
-                    behavior: 'smooth'
-                });
+                const yOffset = -80; // Navbar height offset
+                const y = element.getBoundingClientRect().top + window.scrollY + yOffset;
+                window.scrollTo({ top: y, behavior: 'smooth' });
                 return true;
             }
             return false;
         };
 
-        const pollForElement = () => {
+        // If already on home page, scroll directly
+        if (location.pathname === '/') {
+            // Try immediately first
+            if (!scrollToSection()) {
+                // If element not found (lazy loading), poll for it
+                let attempts = 0;
+                const checkInterval = setInterval(() => {
+                    if (scrollToSection() || attempts > 30) {
+                        clearInterval(checkInterval);
+                    }
+                    attempts++;
+                }, 100);
+            }
+        } else {
+            // Navigate to home first, then scroll
+            navigate('/');
             let attempts = 0;
-            const maxAttempts = 50; // 5 seconds max
-            const interval = setInterval(() => {
-                if (scrollToElement()) {
-                    clearInterval(interval);
+            const checkInterval = setInterval(() => {
+                if (scrollToSection() || attempts > 30) {
+                    clearInterval(checkInterval);
                 }
                 attempts++;
-                if (attempts >= maxAttempts) {
-                    clearInterval(interval);
-                    // Fallback: try one more time after lazy components load
-                    setTimeout(() => scrollToElement(), 500);
-                }
             }, 100);
-        };
-
-        if (location.pathname !== '/') {
-            navigate('/');
-            // Wait a bit for navigation and lazy loading
-            setTimeout(() => pollForElement(), 200);
-        } else {
-            // Small delay to let mobile browser settle
-            setTimeout(() => {
-                if (!scrollToElement()) {
-                    pollForElement();
-                }
-            }, 50);
         }
     };
 
