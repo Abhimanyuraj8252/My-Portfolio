@@ -18,6 +18,18 @@
   * {
     -webkit-tap-highlight-color: transparent;
   }
+
+  /* CRITICAL: Ensure all canvas elements don't block touch on mobile */
+  canvas {
+    pointer-events: none !important;
+    touch-action: none !important;
+  }
+
+  /* Ensure navbar and its children are always clickable */
+  nav,
+  nav * {
+    pointer-events: auto !important;
+  }
 }
 
 html,

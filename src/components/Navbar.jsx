@@ -108,49 +108,72 @@ const Navbar = () => {
                     <button
                         type="button"
                         aria-label={toggle ? "Close menu" : "Open menu"}
-                        className="cursor-pointer text-white p-2 -mr-2 touch-manipulation"
+                        className="cursor-pointer text-white p-2 -mr-2 touch-manipulation relative z-[99999]"
                         onClick={() => setToggle(!toggle)}
+                        onTouchEnd={(e) => {
+                            e.preventDefault();
+                            setToggle(!toggle);
+                        }}
                     >
                         {toggle ? <X size={28} /> : <Menu size={28} />}
                     </button>
 
-                    <div
-                        className={`${!toggle ? "hidden" : "flex"
-                            } p-6 black-gradient absolute top-20 right-0 mx-4 my-2 min-w-[180px] z-[10000] rounded-xl sidebar pointer-events-auto`}
-                    >
-                        <ul className='list-none flex justify-end items-start flex-1 flex-col gap-4'>
-                            {navLinks.filter(nav => nav.id !== 'blog').map((nav) => (
-                                <li key={nav.id}>
-                                    <a
-                                        href={`#${nav.id}`}
-                                        className={`font-poppins font-medium cursor-pointer text-[16px] py-2 px-3 min-h-[44px] flex items-center touch-manipulation block w-full ${active === nav.title ? "text-white" : "text-secondary"
-                                            }`}
-                                        onClick={(e) => handleNavClick(nav.id, nav.title, e)}
+                    {/* Mobile Menu Dropdown - Fixed position for better mobile support */}
+                    {toggle && (
+                        <div
+                            className="fixed top-[80px] right-4 p-6 black-gradient min-w-[200px] rounded-xl shadow-2xl"
+                            style={{
+                                zIndex: 99999,
+                                pointerEvents: 'auto',
+                                touchAction: 'manipulation',
+                            }}
+                        >
+                            <ul className='list-none flex flex-col gap-4'>
+                                {navLinks.filter(nav => nav.id !== 'blog').map((nav) => (
+                                    <li key={nav.id}>
+                                        <button
+                                            type="button"
+                                            className={`font-poppins font-medium cursor-pointer text-[16px] py-3 px-4 min-h-[48px] flex items-center w-full text-left rounded-lg active:bg-white/10 ${active === nav.title ? "text-white bg-white/5" : "text-secondary"
+                                                }`}
+                                            onClick={(e) => handleNavClick(nav.id, nav.title, e)}
+                                            onTouchEnd={(e) => {
+                                                e.preventDefault();
+                                                handleNavClick(nav.id, nav.title, e);
+                                            }}
+                                        >
+                                            {nav.title}
+                                        </button>
+                                    </li>
+                                ))}
+                                <li>
+                                    <Link
+                                        to="/blog"
+                                        className="font-poppins font-medium cursor-pointer text-[16px] text-secondary py-3 px-4 min-h-[48px] flex items-center w-full rounded-lg active:bg-white/10"
+                                        onClick={() => setToggle(false)}
+                                        onTouchEnd={(e) => {
+                                            e.preventDefault();
+                                            setToggle(false);
+                                        }}
                                     >
-                                        {nav.title}
-                                    </a>
+                                        Blog
+                                    </Link>
                                 </li>
-                            ))}
-                            <li>
-                                <Link
-                                    to="/blog"
-                                    className="font-poppins font-medium cursor-pointer text-[16px] text-secondary py-2 px-3 min-h-[44px] flex items-center touch-manipulation block w-full"
-                                    onClick={() => setToggle(false)}
-                                >
-                                    Blog
-                                </Link>
-                            </li>
-                            <li>
-                                <Link
-                                    to="/testimonials"
-                                    className="font-poppins font-medium cursor-pointer text-[16px] text-secondary py-2 px-3 min-h-[44px] flex items-center touch-manipulation block w-full"
-                                    onClick={() => setToggle(false)}
-                                >
-                                    Testimonials
-                                </Link>
-                            </li>
-                        </ul>
-                    </div>
+                                <li>
+                                    <Link
+                                        to="/testimonials"
+                                        className="font-poppins font-medium cursor-pointer text-[16px] text-secondary py-3 px-4 min-h-[48px] flex items-center w-full rounded-lg active:bg-white/10"
+                                        onClick={() => setToggle(false)}
+                                        onTouchEnd={(e) => {
+                                            e.preventDefault();
+                                            setToggle(false);
+                                        }}
+                                    >
+                                        Testimonials
+                                    </Link>
+                                </li>
+                            </ul>
+                        </div>
+                    )}
                 </div>
             </div>
         </nav>
