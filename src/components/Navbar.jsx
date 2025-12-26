@@ -130,14 +130,20 @@ const Navbar = () => {
                             {navLinks.filter(nav => nav.id !== 'blog').map((nav) => (
                                 <li
                                     key={nav.id}
+                                    role="button"
                                     className={`font-poppins font-medium cursor-pointer text-[16px] py-2 px-1 min-h-[44px] flex items-center touch-manipulation ${active === nav.title ? "text-white" : "text-secondary"
                                         }`}
                                     onClick={(e) => handleNavClick(nav.id, nav.title, e)}
+                                    onTouchEnd={(e) => {
+                                        e.preventDefault();
+                                        handleNavClick(nav.id, nav.title, e);
+                                    }}
                                 >
                                     <span>{nav.title}</span>
                                 </li>
                             ))}
                             <li
+                                role="button"
                                 className="font-poppins font-medium cursor-pointer text-[16px] text-secondary py-2 px-1 min-h-[44px] flex items-center touch-manipulation"
                                 onClick={(e) => {
                                     e.preventDefault();
@@ -145,14 +151,25 @@ const Navbar = () => {
                                     setToggle(false);
                                     navigate("/blog");
                                 }}
+                                onTouchEnd={(e) => {
+                                    e.preventDefault();
+                                    setToggle(false);
+                                    navigate("/blog");
+                                }}
                             >
                                 <span>Blog</span>
                             </li>
                             <li
+                                role="button"
                                 className="font-poppins font-medium cursor-pointer text-[16px] text-secondary py-2 px-1 min-h-[44px] flex items-center touch-manipulation"
                                 onClick={(e) => {
                                     e.preventDefault();
                                     e.stopPropagation();
+                                    setToggle(false);
+                                    navigate("/testimonials");
+                                }}
+                                onTouchEnd={(e) => {
+                                    e.preventDefault();
                                     setToggle(false);
                                     navigate("/testimonials");
                                 }}
