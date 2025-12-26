@@ -42,7 +42,7 @@ const Navbar = () => {
             }
             return false;
         };
-        
+
         const pollForElement = () => {
             let attempts = 0;
             const maxAttempts = 150; // 15 seconds
@@ -70,8 +70,9 @@ const Navbar = () => {
     return (
         <nav
             className={`${styles.paddingX
-                } w-full flex items-center py-5 fixed top-0 z-50 pointer-events-auto transition-all duration-300 ${scrolled ? "bg-primary/80 backdrop-blur-md shadow-lg" : "bg-transparent"
+                } w-full flex items-center py-5 fixed top-0 z-[9999] isolate pointer-events-auto transition-all duration-300 ${scrolled ? "bg-primary/80 backdrop-blur-md shadow-lg" : "bg-transparent"
                 }`}
+            style={{ touchAction: 'manipulation' }}
         >
             <div className='w-full flex justify-between items-center max-w-7xl mx-auto'>
                 <Link
@@ -121,7 +122,7 @@ const Navbar = () => {
 
                     <div
                         className={`${!toggle ? "hidden" : "flex"
-                            } p-6 black-gradient absolute top-20 right-0 mx-4 my-2 min-w-[180px] z-[60] rounded-xl sidebar`}
+                            } p-6 black-gradient absolute top-20 right-0 mx-4 my-2 min-w-[180px] z-[10000] rounded-xl sidebar pointer-events-auto`}
                     >
                         <ul className='list-none flex justify-end items-start flex-1 flex-col gap-4'>
                             {navLinks.filter(nav => nav.id !== 'blog').map((nav) => (

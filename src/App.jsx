@@ -52,7 +52,7 @@ const App = () => {
                     path='/'
                     element={
                       <>
-                        <div className='bg-hero-pattern bg-cover bg-no-repeat bg-center'>
+                        <div className='relative z-10 bg-hero-pattern bg-cover bg-no-repeat bg-center'>
                           <Navbar />
                           <Hero />
                         </div>
