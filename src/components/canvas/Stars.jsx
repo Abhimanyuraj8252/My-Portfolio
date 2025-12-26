@@ -50,7 +50,18 @@ const Stars = (props) => {
 
 const StarsCanvas = () => {
     return (
-        <div className='w-full h-auto absolute inset-0 z-[-1] pointer-events-none'>
+        <div 
+            className='pointer-events-none'
+            style={{
+                position: 'fixed',
+                top: 0,
+                left: 0,
+                width: '100%',
+                height: '100%',
+                zIndex: -1,
+                pointerEvents: 'none',
+            }}
+        >
             <Canvas
                 camera={{ position: [0, 0, 1] }}
                 dpr={1} // Low DPR for background stars
@@ -61,6 +72,7 @@ const StarsCanvas = () => {
                 onCreated={({ gl }) => {
                     gl.domElement.addEventListener('webglcontextlost', (e) => e.preventDefault(), false);
                 }}
+                style={{ pointerEvents: 'none' }}
             >
                 <Suspense fallback={null}>
                     <Stars />

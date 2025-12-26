@@ -269,9 +269,3 @@ body {
       -1.8em -1.8em 0 0em #ffffff;
   }
 }
-
-/* DEBUG OVERLAY */
-* {
-  outline: 1px solid red !important;
-  background: rgba(255, 0, 0, 0.05) !important;
-}
