@@ -44,11 +44,15 @@ const BallCanvas = ({ icon }) => {
     return (
         <Canvas
             frameloop='demand'
-            dpr={[1, 2]}
-            gl={{ preserveDrawingBuffer: true }}
+            dpr={[1, 1.5]}
+            gl={{
+                preserveDrawingBuffer: true,
+                powerPreference: 'high-performance',
+                antialias: false,
+            }}
             onCreated={({ gl }) => {
-                // Allow touch scrolling on mobile while keeping orbit controls usable
                 gl.domElement.style.touchAction = 'pan-y';
+                gl.domElement.addEventListener('webglcontextlost', (e) => e.preventDefault(), false);
             }}
         >
             <Suspense fallback={<CanvasLoader />}>

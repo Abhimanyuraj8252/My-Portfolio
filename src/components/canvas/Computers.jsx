@@ -56,11 +56,19 @@ const ComputersCanvas = () => {
 
     return (
         <Canvas
-            frameloop='always' // Changed from demand to always for smooth autoRotate
+            frameloop='always'
             shadows
-            dpr={[1, 2]}
+            dpr={[1, 1.5]}
             camera={{ position: [20, 3, 5], fov: 25 }}
-            gl={{ preserveDrawingBuffer: true }}
+            gl={{
+                preserveDrawingBuffer: true,
+                powerPreference: 'high-performance',
+                antialias: false,
+            }}
+            onCreated={({ gl }) => {
+                gl.domElement.style.touchAction = 'pan-y';
+                gl.domElement.addEventListener('webglcontextlost', (e) => e.preventDefault(), false);
+            }}
         >
             <Suspense fallback={<CanvasLoader />}>
                 <OrbitControls

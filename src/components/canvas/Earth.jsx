@@ -42,8 +42,12 @@ const EarthCanvas = () => {
         <Canvas
             shadows
             frameloop='demand'
-            dpr={[1, 2]}
-            gl={{ preserveDrawingBuffer: true }}
+            dpr={[1, 1.5]} // Limit max DPR for better performance
+            gl={{
+                preserveDrawingBuffer: true,
+                powerPreference: 'high-performance',
+                antialias: false, // Disable for better mobile performance
+            }}
             camera={{
                 fov: 45,
                 near: 0.1,
@@ -51,8 +55,12 @@ const EarthCanvas = () => {
                 position: [-4, 3, 6],
             }}
             onCreated={({ gl }) => {
-                // Keep scroll working on touch devices while allowing canvas interactions
                 gl.domElement.style.touchAction = 'pan-y';
+                // Handle WebGL context loss gracefully
+                gl.domElement.addEventListener('webglcontextlost', (e) => {
+                    e.preventDefault();
+                    console.warn('WebGL context lost, will restore automatically');
+                }, false);
             }}
         >
             <Suspense fallback={<CanvasLoader />}>

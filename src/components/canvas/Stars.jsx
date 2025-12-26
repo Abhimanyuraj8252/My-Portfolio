@@ -4,25 +4,25 @@ import { Points, PointMaterial, Preload } from "@react-three/drei";
 
 const Stars = (props) => {
     const ref = useRef();
-    
+
     const sphere = useMemo(() => {
         const positions = new Float32Array(5001); // 1667 stars * 3 coordinates
-        
+
         for (let i = 0; i < positions.length; i += 3) {
             const radius = Math.random() * 1.2;
             const theta = Math.random() * Math.PI * 2;
             const phi = Math.acos((Math.random() * 2) - 1);
-            
+
             const x = radius * Math.sin(phi) * Math.cos(theta);
             const y = radius * Math.sin(phi) * Math.sin(theta);
             const z = radius * Math.cos(phi);
-            
+
             // Ensure no NaN or Infinity values
             positions[i] = isFinite(x) ? x : 0;
             positions[i + 1] = isFinite(y) ? y : 0;
             positions[i + 2] = isFinite(z) ? z : 0;
         }
-        
+
         return positions;
     }, []);
 
@@ -51,8 +51,16 @@ const Stars = (props) => {
 const StarsCanvas = () => {
     return (
         <div className='w-full h-auto absolute inset-0 z-[-1] pointer-events-none'>
-            <Canvas 
+            <Canvas
                 camera={{ position: [0, 0, 1] }}
+                dpr={1} // Low DPR for background stars
+                gl={{
+                    powerPreference: 'low-power', // Low power for background element
+                    antialias: false,
+                }}
+                onCreated={({ gl }) => {
+                    gl.domElement.addEventListener('webglcontextlost', (e) => e.preventDefault(), false);
+                }}
             >
                 <Suspense fallback={null}>
                     <Stars />
