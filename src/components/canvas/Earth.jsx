@@ -1,6 +1,6 @@
-import React, { Suspense } from "react";
+import React, { Suspense, useState, useCallback, useEffect, useRef } from "react";
 import { Canvas } from "@react-three/fiber";
-import { OrbitControls, Preload, useGLTF } from "@react-three/drei";
+import { OrbitControls, Preload } from "@react-three/drei";
 
 import CanvasLoader from "../Loader";
 
@@ -38,15 +38,40 @@ const Earth = () => {
 };
 
 const EarthCanvas = () => {
+    const [contextLost, setContextLost] = useState(false);
+    const canvasRef = useRef(null);
+
+    const handleContextLost = useCallback((e) => {
+        e.preventDefault();
+        console.warn('WebGL context lost, attempting to restore...');
+        setContextLost(true);
+    }, []);
+
+    const handleContextRestored = useCallback(() => {
+        console.log('WebGL context restored');
+        setContextLost(false);
+    }, []);
+
+    // Show fallback when context is lost
+    if (contextLost) {
+        return (
+            <div className="w-full h-full flex items-center justify-center">
+                <div className="text-secondary text-sm">Restoring 3D view...</div>
+            </div>
+        );
+    }
+
     return (
         <Canvas
+            ref={canvasRef}
             shadows
             frameloop='demand'
             dpr={[1, 1.5]} // Limit max DPR for better performance
             gl={{
-                preserveDrawingBuffer: true,
-                powerPreference: 'high-performance',
+                preserveDrawingBuffer: false, // Set to false to reduce memory usage
+                powerPreference: 'default', // Let browser decide for better stability
                 antialias: false, // Disable for better mobile performance
+                failIfMajorPerformanceCaveat: false, // Don't fail on low-end devices
             }}
             camera={{
                 fov: 45,
@@ -56,11 +81,10 @@ const EarthCanvas = () => {
             }}
             onCreated={({ gl }) => {
                 gl.domElement.style.touchAction = 'pan-y';
+
                 // Handle WebGL context loss gracefully
-                gl.domElement.addEventListener('webglcontextlost', (e) => {
-                    e.preventDefault();
-                    console.warn('WebGL context lost, will restore automatically');
-                }, false);
+                gl.domElement.addEventListener('webglcontextlost', handleContextLost, false);
+                gl.domElement.addEventListener('webglcontextrestored', handleContextRestored, false);
             }}
         >
             <Suspense fallback={<CanvasLoader />}>
