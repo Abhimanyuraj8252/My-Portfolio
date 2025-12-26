@@ -8,7 +8,7 @@ const Hero = () => {
     return (
         <section className={`relative w-full h-auto mx-auto overflow-hidden bg-primary`}>
             {/* Animated Background Gradients - Reduced for mobile performance */}
-            <div className="absolute inset-0 top-0 z-0 overflow-hidden">
+            <div className="absolute inset-0 top-0 z-0 overflow-hidden pointer-events-none">
                 <motion.div
                     animate={{ scale: [1, 1.1, 1] }}
                     transition={{ duration: 25, repeat: Infinity, repeatType: "mirror", ease: "linear" }}

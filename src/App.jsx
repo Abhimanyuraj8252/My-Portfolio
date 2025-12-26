@@ -43,7 +43,7 @@ const App = () => {
     <HelmetProvider>
       <AuthProvider>
         <BrowserRouter>
-          <div className='relative z-0 bg-primary'>
+          <div className='relative z-0 bg-primary overflow-x-hidden'>
             <ErrorBoundary>
               <Suspense fallback={<PageLoader />}>
                 <Routes>
