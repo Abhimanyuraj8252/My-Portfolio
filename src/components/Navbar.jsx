@@ -23,22 +23,41 @@ const Navbar = () => {
         return () => window.removeEventListener("scroll", handleScroll);
     }, []);
 
+    // Scroll to element with retry mechanism
+    const scrollToSection = (navId, maxRetries = 30) => {
+        let retries = 0;
+
+        const tryScroll = () => {
+            const el = document.getElementById(navId);
+            if (el) {
+                // Element found, scroll to it
+                el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                return true;
+            }
+
+            // Element not found, retry
+            retries++;
+            if (retries < maxRetries) {
+                setTimeout(tryScroll, 100); // Retry every 100ms, up to 3 seconds
+            }
+            return false;
+        };
+
+        tryScroll();
+    };
+
     // Simple navigation handler for mobile
     const handleMobileNavClick = (navId, navTitle) => {
         setActive(navTitle);
         setToggle(false);
 
-        // If not on home page, navigate first
+        // If not on home page, navigate first then scroll
         if (location.pathname !== '/') {
             navigate('/');
-            // Wait for navigation then scroll
-            setTimeout(() => {
-                const el = document.getElementById(navId);
-                if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            }, 100);
+            // Use polling to wait for element to exist
+            setTimeout(() => scrollToSection(navId), 200);
         } else {
-            const el = document.getElementById(navId);
-            if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            scrollToSection(navId);
         }
     };
 
@@ -48,13 +67,9 @@ const Navbar = () => {
 
         if (location.pathname !== '/') {
             navigate('/');
-            setTimeout(() => {
-                const el = document.getElementById(navId);
-                if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            }, 100);
+            setTimeout(() => scrollToSection(navId), 200);
         } else {
-            const el = document.getElementById(navId);
-            if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            scrollToSection(navId);
         }
     };
 
