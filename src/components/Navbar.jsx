@@ -120,53 +120,34 @@ const Navbar = () => {
                     >
                         <ul className='list-none flex justify-end items-start flex-1 flex-col gap-4'>
                             {navLinks.filter(nav => nav.id !== 'blog').map((nav) => (
-                                <li
-                                    key={nav.id}
-                                    role="button"
-                                    className={`font-poppins font-medium cursor-pointer text-[16px] py-2 px-1 min-h-[44px] flex items-center touch-manipulation ${active === nav.title ? "text-white" : "text-secondary"
-                                        }`}
-                                    onClick={(e) => handleNavClick(nav.id, nav.title, e)}
-                                    onTouchEnd={(e) => {
-                                        e.preventDefault();
-                                        handleNavClick(nav.id, nav.title, e);
-                                    }}
-                                >
-                                    <span>{nav.title}</span>
+                                <li key={nav.id}>
+                                    <a
+                                        href={`#${nav.id}`}
+                                        className={`font-poppins font-medium cursor-pointer text-[16px] py-2 px-3 min-h-[44px] flex items-center touch-manipulation block w-full ${active === nav.title ? "text-white" : "text-secondary"
+                                            }`}
+                                        onClick={(e) => handleNavClick(nav.id, nav.title, e)}
+                                    >
+                                        {nav.title}
+                                    </a>
                                 </li>
                             ))}
-                            <li
-                                role="button"
-                                className="font-poppins font-medium cursor-pointer text-[16px] text-secondary py-2 px-1 min-h-[44px] flex items-center touch-manipulation"
-                                onClick={(e) => {
-                                    e.preventDefault();
-                                    e.stopPropagation();
-                                    setToggle(false);
-                                    navigate("/blog");
-                                }}
-                                onTouchEnd={(e) => {
-                                    e.preventDefault();
-                                    setToggle(false);
-                                    navigate("/blog");
-                                }}
-                            >
-                                <span>Blog</span>
+                            <li>
+                                <Link
+                                    to="/blog"
+                                    className="font-poppins font-medium cursor-pointer text-[16px] text-secondary py-2 px-3 min-h-[44px] flex items-center touch-manipulation block w-full"
+                                    onClick={() => setToggle(false)}
+                                >
+                                    Blog
+                                </Link>
                             </li>
-                            <li
-                                role="button"
-                                className="font-poppins font-medium cursor-pointer text-[16px] text-secondary py-2 px-1 min-h-[44px] flex items-center touch-manipulation"
-                                onClick={(e) => {
-                                    e.preventDefault();
-                                    e.stopPropagation();
-                                    setToggle(false);
-                                    navigate("/testimonials");
-                                }}
-                                onTouchEnd={(e) => {
-                                    e.preventDefault();
-                                    setToggle(false);
-                                    navigate("/testimonials");
-                                }}
-                            >
-                                <span>Testimonials</span>
+                            <li>
+                                <Link
+                                    to="/testimonials"
+                                    className="font-poppins font-medium cursor-pointer text-[16px] text-secondary py-2 px-3 min-h-[44px] flex items-center touch-manipulation block w-full"
+                                    onClick={() => setToggle(false)}
+                                >
+                                    Testimonials
+                                </Link>
                             </li>
                         </ul>
                     </div>
