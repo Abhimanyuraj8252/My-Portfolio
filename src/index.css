@@ -38,7 +38,21 @@ body {
 #root {
   width: 100%;
   min-height: 100vh;
+  /* Fallback */
+  min-height: 100dvh;
+  /* Dynamic viewport height for mobile */
   overflow-x: hidden;
+}
+
+/* CRITICAL: Canvas/3D background isolation - prevents click hijacking on mobile */
+canvas {
+  pointer-events: none !important;
+  touch-action: none !important;
+}
+
+/* Re-enable pointer events only for interactive 3D elements that need them */
+.canvas-interactive canvas {
+  pointer-events: auto !important;
 }
 
 /* Responsive container */
@@ -68,7 +82,8 @@ body {
   margin-top: -100px;
   padding-bottom: 100px;
   display: block;
-  scroll-margin-top: 80px; /* Offset for fixed navbar when using scrollIntoView */
+  scroll-margin-top: 80px;
+  /* Offset for fixed navbar when using scrollIntoView */
 }
 
 .black-gradient {

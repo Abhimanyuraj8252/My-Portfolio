@@ -43,7 +43,7 @@ const App = () => {
     <HelmetProvider>
       <AuthProvider>
         <BrowserRouter>
-          <div className='relative z-0 bg-primary overflow-x-hidden'>
+          <div className='relative z-0 bg-primary overflow-x-hidden min-h-dvh'>
             <ErrorBoundary>
               <Suspense fallback={<PageLoader />}>
                 <Routes>
@@ -52,19 +52,21 @@ const App = () => {
                     path='/'
                     element={
                       <>
-                        <div className='relative z-10 bg-hero-pattern bg-cover bg-no-repeat bg-center'>
+                        <div className='relative z-10 bg-hero-pattern bg-cover bg-no-repeat bg-center pointer-events-auto'>
                           <Navbar />
                           <Hero />
                         </div>
-                        <main>
+                        <main className='relative z-10 pointer-events-auto'>
                           <About />
                           <Experience />
                           <Tech />
                           <Works />
                           <Feed />
-                          <div className='relative z-0'>
+                          <div className='relative'>
                             <Contact />
-                            <StarsCanvas />
+                            <div className='fixed inset-0 z-[-1] pointer-events-none'>
+                              <StarsCanvas />
+                            </div>
                           </div>
                         </main>
                         <Footer />
