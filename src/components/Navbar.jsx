@@ -37,7 +37,14 @@ const Navbar = () => {
         const scrollToElement = () => {
             const element = document.getElementById(navId);
             if (element) {
-                element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                // Use getBoundingClientRect for more reliable mobile scrolling
+                const elementPosition = element.getBoundingClientRect().top;
+                const offsetPosition = elementPosition + window.pageYOffset - 80; // 80px offset for navbar
+
+                window.scrollTo({
+                    top: offsetPosition,
+                    behavior: 'smooth'
+                });
                 return true;
             }
             return false;
@@ -45,7 +52,7 @@ const Navbar = () => {
 
         const pollForElement = () => {
             let attempts = 0;
-            const maxAttempts = 150; // 15 seconds
+            const maxAttempts = 50; // 5 seconds max
             const interval = setInterval(() => {
                 if (scrollToElement()) {
                     clearInterval(interval);
@@ -53,17 +60,23 @@ const Navbar = () => {
                 attempts++;
                 if (attempts >= maxAttempts) {
                     clearInterval(interval);
+                    // Fallback: try one more time after lazy components load
+                    setTimeout(() => scrollToElement(), 500);
                 }
             }, 100);
         };
 
         if (location.pathname !== '/') {
             navigate('/');
-            pollForElement();
+            // Wait a bit for navigation and lazy loading
+            setTimeout(() => pollForElement(), 200);
         } else {
-            if (!scrollToElement()) {
-                pollForElement();
-            }
+            // Small delay to let mobile browser settle
+            setTimeout(() => {
+                if (!scrollToElement()) {
+                    pollForElement();
+                }
+            }, 50);
         }
     };
 
