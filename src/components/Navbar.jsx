@@ -23,40 +23,27 @@ const Navbar = () => {
         return () => window.removeEventListener("scroll", handleScroll);
     }, []);
 
-    // Scroll to element with retry mechanism - using window.scrollTo for better mobile support
-    const scrollToSection = (navId, maxRetries = 50) => {
+    // Scroll to element with retry mechanism
+    const scrollToSection = (navId, maxRetries = 30) => {
         let retries = 0;
-        const navbarHeight = 80; // Height of fixed navbar
 
         const tryScroll = () => {
             const el = document.getElementById(navId);
-
             if (el) {
-                // Element found - calculate position and scroll
-                const elementPosition = el.getBoundingClientRect().top + window.pageYOffset;
-                const offsetPosition = elementPosition - navbarHeight;
-
-                window.scrollTo({
-                    top: offsetPosition,
-                    behavior: 'smooth'
-                });
-
-                console.log(`Scrolled to ${navId} at position ${offsetPosition}`);
+                // Element found, scroll to it
+                el.scrollIntoView({ behavior: 'smooth', block: 'start' });
                 return true;
             }
 
             // Element not found, retry
             retries++;
             if (retries < maxRetries) {
-                setTimeout(tryScroll, 100); // Retry every 100ms, up to 5 seconds
-            } else {
-                console.warn(`Could not find element with id: ${navId}`);
+                setTimeout(tryScroll, 100); // Retry every 100ms, up to 3 seconds
             }
             return false;
         };
 
-        // Start trying after a small delay
-        setTimeout(tryScroll, 50);
+        tryScroll();
     };
 
     // Simple navigation handler for mobile
