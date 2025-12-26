@@ -37,9 +37,8 @@ const Navbar = () => {
         const scrollToSection = () => {
             const element = document.getElementById(navId);
             if (element) {
-                const yOffset = -80; // Navbar height offset
-                const y = element.getBoundingClientRect().top + window.scrollY + yOffset;
-                window.scrollTo({ top: y, behavior: 'smooth' });
+                // scrollIntoView works correctly with body overflow settings
+                element.scrollIntoView({ behavior: 'smooth', block: 'start' });
                 return true;
             }
             return false;
@@ -47,7 +46,6 @@ const Navbar = () => {
 
         // If already on home page, scroll directly
         if (location.pathname === '/') {
-            // Try immediately first
             if (!scrollToSection()) {
                 // If element not found (lazy loading), poll for it
                 let attempts = 0;
