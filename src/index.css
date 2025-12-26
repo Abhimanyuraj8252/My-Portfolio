@@ -44,17 +44,6 @@ body {
   overflow-x: hidden;
 }
 
-/* CRITICAL: Canvas/3D background isolation - prevents click hijacking on mobile */
-canvas {
-  pointer-events: none !important;
-  touch-action: none !important;
-}
-
-/* Re-enable pointer events only for interactive 3D elements that need them */
-.canvas-interactive canvas {
-  pointer-events: auto !important;
-}
-
 /* Responsive container */
 .container {
   width: 100%;
