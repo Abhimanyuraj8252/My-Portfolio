@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { styles } from "../styles";
 import { navLinks } from "../constants";
@@ -118,61 +119,77 @@ const Navbar = () => {
                         {toggle ? <X size={28} /> : <Menu size={28} />}
                     </button>
 
-                    {/* Mobile Menu Dropdown - Fixed position for better mobile support */}
-                    {toggle && (
-                        <div
-                            className="fixed top-[80px] right-4 p-6 black-gradient min-w-[200px] rounded-xl shadow-2xl"
-                            style={{
-                                zIndex: 99999,
-                                pointerEvents: 'auto',
-                                touchAction: 'manipulation',
-                            }}
-                        >
-                            <ul className='list-none flex flex-col gap-4'>
-                                {navLinks.filter(nav => nav.id !== 'blog').map((nav) => (
-                                    <li key={nav.id}>
-                                        <button
-                                            type="button"
-                                            className={`font-poppins font-medium cursor-pointer text-[16px] py-3 px-4 min-h-[48px] flex items-center w-full text-left rounded-lg active:bg-white/10 ${active === nav.title ? "text-white bg-white/5" : "text-secondary"
-                                                }`}
-                                            onClick={(e) => handleNavClick(nav.id, nav.title, e)}
+                    {/* Mobile Menu Dropdown - Using Portal to escape all stacking contexts */}
+                    {toggle && createPortal(
+                        <>
+                            {/* Backdrop to close menu */}
+                            <div
+                                className="fixed inset-0 bg-transparent"
+                                style={{ zIndex: 999998 }}
+                                onClick={() => setToggle(false)}
+                                onTouchEnd={(e) => {
+                                    e.preventDefault();
+                                    setToggle(false);
+                                }}
+                            />
+                            {/* Menu */}
+                            <div
+                                className="fixed top-[80px] right-4 p-6 min-w-[220px] rounded-xl shadow-2xl"
+                                style={{
+                                    zIndex: 999999,
+                                    pointerEvents: 'auto',
+                                    touchAction: 'manipulation',
+                                    background: 'linear-gradient(135deg, #1d1836 0%, #11101d 100%)',
+                                    border: '1px solid rgba(255,255,255,0.1)',
+                                }}
+                            >
+                                <ul className='list-none flex flex-col gap-2'>
+                                    {navLinks.filter(nav => nav.id !== 'blog').map((nav) => (
+                                        <li key={nav.id}>
+                                            <button
+                                                type="button"
+                                                className={`font-poppins font-medium cursor-pointer text-[16px] py-3 px-4 min-h-[48px] flex items-center w-full text-left rounded-lg active:bg-white/10 transition-colors ${active === nav.title ? "text-white bg-white/5" : "text-secondary hover:text-white"
+                                                    }`}
+                                                onClick={(e) => handleNavClick(nav.id, nav.title, e)}
+                                                onTouchEnd={(e) => {
+                                                    e.preventDefault();
+                                                    handleNavClick(nav.id, nav.title, e);
+                                                }}
+                                            >
+                                                {nav.title}
+                                            </button>
+                                        </li>
+                                    ))}
+                                    <li>
+                                        <Link
+                                            to="/blog"
+                                            className="font-poppins font-medium cursor-pointer text-[16px] text-secondary py-3 px-4 min-h-[48px] flex items-center w-full rounded-lg active:bg-white/10 hover:text-white transition-colors"
+                                            onClick={() => setToggle(false)}
                                             onTouchEnd={(e) => {
                                                 e.preventDefault();
-                                                handleNavClick(nav.id, nav.title, e);
+                                                setToggle(false);
                                             }}
                                         >
-                                            {nav.title}
-                                        </button>
+                                            Blog
+                                        </Link>
                                     </li>
-                                ))}
-                                <li>
-                                    <Link
-                                        to="/blog"
-                                        className="font-poppins font-medium cursor-pointer text-[16px] text-secondary py-3 px-4 min-h-[48px] flex items-center w-full rounded-lg active:bg-white/10"
-                                        onClick={() => setToggle(false)}
-                                        onTouchEnd={(e) => {
-                                            e.preventDefault();
-                                            setToggle(false);
-                                        }}
-                                    >
-                                        Blog
-                                    </Link>
-                                </li>
-                                <li>
-                                    <Link
-                                        to="/testimonials"
-                                        className="font-poppins font-medium cursor-pointer text-[16px] text-secondary py-3 px-4 min-h-[48px] flex items-center w-full rounded-lg active:bg-white/10"
-                                        onClick={() => setToggle(false)}
-                                        onTouchEnd={(e) => {
-                                            e.preventDefault();
-                                            setToggle(false);
-                                        }}
-                                    >
-                                        Testimonials
-                                    </Link>
-                                </li>
-                            </ul>
-                        </div>
+                                    <li>
+                                        <Link
+                                            to="/testimonials"
+                                            className="font-poppins font-medium cursor-pointer text-[16px] text-secondary py-3 px-4 min-h-[48px] flex items-center w-full rounded-lg active:bg-white/10 hover:text-white transition-colors"
+                                            onClick={() => setToggle(false)}
+                                            onTouchEnd={(e) => {
+                                                e.preventDefault();
+                                                setToggle(false);
+                                            }}
+                                        >
+                                            Testimonials
+                                        </Link>
+                                    </li>
+                                </ul>
+                            </div>
+                        </>,
+                        document.body
                     )}
                 </div>
             </div>
