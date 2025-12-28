@@ -1,5 +1,6 @@
 import React, { useRef, useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { toast } from "sonner";
 
 import { styles } from "../styles";
 import { EarthCanvas } from "./canvas";
@@ -111,6 +112,7 @@ const Contact = () => {
 
             setLoading(false);
             setShowThankYou(true);
+            toast.success("Thank you! Your message has been received. I will get back to you shortly.");
             setForm({
                 name: "",
                 email: "",
@@ -122,7 +124,7 @@ const Contact = () => {
         } catch (error) {
             setLoading(false);
             console.error("Form error:", error);
-            alert("Something went wrong. Please try again.");
+            toast.error("Unable to send message. Please check your connection and try again.");
         }
     }, [form]);
 

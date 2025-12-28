@@ -1,6 +1,7 @@
 // ... imports ...
 import React, { Suspense, lazy } from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { Toaster } from "sonner";
 import { HelmetProvider } from "react-helmet-async";
 import { Navbar, Hero, StarsCanvas, Footer } from "./components"; // Keep critical above fold components eager
 import SmoothScroll from "./components/SmoothScroll";
@@ -100,6 +101,7 @@ const App = () => {
                 </Suspense>
               </ErrorBoundary>
             </div>
+            <Toaster position="bottom-right" richColors />
           </SmoothScroll>
         </BrowserRouter>
       </AuthProvider>
