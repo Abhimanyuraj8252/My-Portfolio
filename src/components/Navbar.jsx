@@ -5,6 +5,133 @@ import { styles } from "../styles";
 import { navLinks } from "../constants";
 import { logo } from "../assets";
 import { Menu, X } from "lucide-react";
+import { useLenis } from "../context/LenisContext";
+
+// Mobile menu component rendered via portal
+const MobileMenu = ({ toggle, setToggle, active, setActive, handleMobileNavClick, navigate }) => {
+    if (!toggle) return null;
+
+    return createPortal(
+        <div
+            id="mobile-nav-overlay"
+            style={{
+                position: 'fixed',
+                inset: 0,
+                zIndex: 2147483647, // Maximum possible z-index
+                pointerEvents: 'auto',
+            }}
+        >
+            {/* Backdrop */}
+            <div
+                style={{
+                    position: 'absolute',
+                    inset: 0,
+                    background: 'rgba(0,0,0,0.5)',
+                }}
+                onClick={() => setToggle(false)}
+            />
+
+            {/* Menu Panel */}
+            <div
+                style={{
+                    position: 'absolute',
+                    top: '80px',
+                    right: '16px',
+                    minWidth: '220px',
+                    padding: '24px',
+                    borderRadius: '16px',
+                    background: 'linear-gradient(135deg, #1d1836 0%, #11101d 100%)',
+                    border: '1px solid rgba(255,255,255,0.1)',
+                    boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
+                }}
+            >
+                <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                    {navLinks.filter(nav => nav.id !== 'blog').map((nav) => (
+                        <li key={nav.id}>
+                            <a
+                                href={`/#${nav.id}`}
+                                onClick={(e) => {
+                                    e.preventDefault();
+                                    handleMobileNavClick(nav.id, nav.title);
+                                }}
+                                style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    width: '100%',
+                                    padding: '12px 16px',
+                                    minHeight: '48px',
+                                    fontSize: '16px',
+                                    fontWeight: 500,
+                                    color: active === nav.title ? '#fff' : '#aaa6c3',
+                                    background: active === nav.title ? 'rgba(255,255,255,0.05)' : 'transparent',
+                                    borderRadius: '8px',
+                                    textDecoration: 'none',
+                                    cursor: 'pointer',
+                                    WebkitTapHighlightColor: 'rgba(255,255,255,0.1)',
+                                }}
+                            >
+                                {nav.title}
+                            </a>
+                        </li>
+                    ))}
+                    <li>
+                        <a
+                            href="/blog"
+                            onClick={(e) => {
+                                e.preventDefault();
+                                setToggle(false);
+                                navigate('/blog');
+                            }}
+                            style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                width: '100%',
+                                padding: '12px 16px',
+                                minHeight: '48px',
+                                fontSize: '16px',
+                                fontWeight: 500,
+                                color: '#aaa6c3',
+                                borderRadius: '8px',
+                                textDecoration: 'none',
+                                cursor: 'pointer',
+                                WebkitTapHighlightColor: 'rgba(255,255,255,0.1)',
+                            }}
+                        >
+                            Blog
+                        </a>
+                    </li>
+                    <li>
+                        <a
+                            href="/testimonials"
+                            onClick={(e) => {
+                                e.preventDefault();
+                                setToggle(false);
+                                navigate('/testimonials');
+                            }}
+                            style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                width: '100%',
+                                padding: '12px 16px',
+                                minHeight: '48px',
+                                fontSize: '16px',
+                                fontWeight: 500,
+                                color: '#aaa6c3',
+                                borderRadius: '8px',
+                                textDecoration: 'none',
+                                cursor: 'pointer',
+                                WebkitTapHighlightColor: 'rgba(255,255,255,0.1)',
+                            }}
+                        >
+                            Testimonials
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>,
+        document.body
+    );
+};
 
 const Navbar = () => {
     const [active, setActive] = useState("");
@@ -12,6 +139,7 @@ const Navbar = () => {
     const [scrolled, setScrolled] = useState(false);
     const navigate = useNavigate();
     const location = useLocation();
+    const lenis = useLenis();
 
     useEffect(() => {
         const handleScroll = () => {
@@ -23,15 +151,45 @@ const Navbar = () => {
         return () => window.removeEventListener("scroll", handleScroll);
     }, []);
 
-    // Scroll to element with retry mechanism
+    // Lock/Unlock scroll when mobile menu is toggled
+    useEffect(() => {
+        if (!lenis) return;
+
+        if (toggle) {
+            lenis.stop();
+        } else {
+            lenis.start();
+        }
+
+        // Cleanup function to ensure scroll is restored if component unmounts
+        // or if toggle logic fails in some edge case.
+        return () => {
+            if (lenis) lenis.start();
+        };
+    }, [toggle, lenis]);
+
+    // Scroll to element with retry mechanism using Lenis
     const scrollToSection = (navId, maxRetries = 30) => {
+        if (!lenis) return;
+
+        // Force start if stopped (safety net in case of stuck state)
+        if (lenis.isStopped) {
+            lenis.start();
+        }
+
+        // Special handling for "top"
+        if (navId === "top") {
+            lenis.scrollTo(0);
+            return;
+        }
+
         let retries = 0;
 
         const tryScroll = () => {
             const el = document.getElementById(navId);
             if (el) {
-                // Element found, scroll to it
-                el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                // Element found, scroll to it using Lenis
+                lenis.scrollTo(el, { offset: -80 }); // Offset for fixed header
                 return true;
             }
 
@@ -73,132 +231,6 @@ const Navbar = () => {
         }
     };
 
-    // Mobile menu component rendered via portal
-    const MobileMenu = () => {
-        if (!toggle) return null;
-
-        return createPortal(
-            <div
-                id="mobile-nav-overlay"
-                style={{
-                    position: 'fixed',
-                    inset: 0,
-                    zIndex: 2147483647, // Maximum possible z-index
-                    pointerEvents: 'auto',
-                }}
-            >
-                {/* Backdrop */}
-                <div
-                    style={{
-                        position: 'absolute',
-                        inset: 0,
-                        background: 'rgba(0,0,0,0.5)',
-                    }}
-                    onClick={() => setToggle(false)}
-                />
-
-                {/* Menu Panel */}
-                <div
-                    style={{
-                        position: 'absolute',
-                        top: '80px',
-                        right: '16px',
-                        minWidth: '220px',
-                        padding: '24px',
-                        borderRadius: '16px',
-                        background: 'linear-gradient(135deg, #1d1836 0%, #11101d 100%)',
-                        border: '1px solid rgba(255,255,255,0.1)',
-                        boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
-                    }}
-                >
-                    <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                        {navLinks.filter(nav => nav.id !== 'blog').map((nav) => (
-                            <li key={nav.id}>
-                                <a
-                                    href={`/#${nav.id}`}
-                                    onClick={(e) => {
-                                        e.preventDefault();
-                                        handleMobileNavClick(nav.id, nav.title);
-                                    }}
-                                    style={{
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        width: '100%',
-                                        padding: '12px 16px',
-                                        minHeight: '48px',
-                                        fontSize: '16px',
-                                        fontWeight: 500,
-                                        color: active === nav.title ? '#fff' : '#aaa6c3',
-                                        background: active === nav.title ? 'rgba(255,255,255,0.05)' : 'transparent',
-                                        borderRadius: '8px',
-                                        textDecoration: 'none',
-                                        cursor: 'pointer',
-                                        WebkitTapHighlightColor: 'rgba(255,255,255,0.1)',
-                                    }}
-                                >
-                                    {nav.title}
-                                </a>
-                            </li>
-                        ))}
-                        <li>
-                            <a
-                                href="/blog"
-                                onClick={(e) => {
-                                    e.preventDefault();
-                                    setToggle(false);
-                                    navigate('/blog');
-                                }}
-                                style={{
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    width: '100%',
-                                    padding: '12px 16px',
-                                    minHeight: '48px',
-                                    fontSize: '16px',
-                                    fontWeight: 500,
-                                    color: '#aaa6c3',
-                                    borderRadius: '8px',
-                                    textDecoration: 'none',
-                                    cursor: 'pointer',
-                                    WebkitTapHighlightColor: 'rgba(255,255,255,0.1)',
-                                }}
-                            >
-                                Blog
-                            </a>
-                        </li>
-                        <li>
-                            <a
-                                href="/testimonials"
-                                onClick={(e) => {
-                                    e.preventDefault();
-                                    setToggle(false);
-                                    navigate('/testimonials');
-                                }}
-                                style={{
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    width: '100%',
-                                    padding: '12px 16px',
-                                    minHeight: '48px',
-                                    fontSize: '16px',
-                                    fontWeight: 500,
-                                    color: '#aaa6c3',
-                                    borderRadius: '8px',
-                                    textDecoration: 'none',
-                                    cursor: 'pointer',
-                                    WebkitTapHighlightColor: 'rgba(255,255,255,0.1)',
-                                }}
-                            >
-                                Testimonials
-                            </a>
-                        </li>
-                    </ul>
-                </div>
-            </div>,
-            document.body
-        );
-    };
-
     return (
         <>
             <nav
@@ -215,7 +247,7 @@ const Navbar = () => {
                         className='flex items-center gap-2 flex-shrink-0'
                         onClick={() => {
                             setActive("");
-                            window.scrollTo(0, 0);
+                            scrollToSection("top");
                         }}
                     >
                         <img src={logo} alt="logo" className="w-8 h-8 sm:w-9 sm:h-9 object-contain flex-shrink-0" />
@@ -268,7 +300,14 @@ const Navbar = () => {
             </nav>
 
             {/* Mobile Menu - Rendered via Portal */}
-            <MobileMenu />
+            <MobileMenu
+                toggle={toggle}
+                setToggle={setToggle}
+                active={active}
+                setActive={setActive}
+                handleMobileNavClick={handleMobileNavClick}
+                navigate={navigate}
+            />
         </>
     );
 };
