@@ -1,10 +1,11 @@
 import React, { useMemo, useState } from "react";
-import { motion } from "framer-motion";
+import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
 import { styles } from "../styles";
 import { projects } from "../constants";
 import { fadeIn, textVariant } from "../utils/motion";
 import { SectionWrapper } from "../hoc";
 import { Github, Globe2 } from "lucide-react";
+import { useLenis } from "../context/LenisContext";
 
 const categories = [
     { id: "all", label: "All" },
@@ -23,19 +24,20 @@ const ProjectCard = ({
     live_link,
     category,
     featured,
+    skewStyle // Receive skew style prop
 }) => {
     const [imageError, setImageError] = useState(false);
     const hasImage = Boolean(image) && !imageError;
 
     return (
-        <div>
-            <div className='bg-tertiary p-5 rounded-2xl w-full shadow-card border border-white/5 hover:border-white/15 transition-colors duration-200'>
-                <div className='relative w-full h-[230px] overflow-hidden rounded-2xl bg-slate-900'>
+        <motion.div style={skewStyle} className="h-full">
+            <div className='bg-tertiary p-5 rounded-2xl w-full shadow-card border border-white/5 hover:border-white/15 transition-colors duration-200 h-full flex flex-col'>
+                <div className='relative w-full h-[230px] overflow-hidden rounded-2xl bg-slate-900 flex-shrink-0'>
                     {hasImage ? (
                         <img
                             src={image}
                             alt={name}
-                            className='w-full h-full object-cover'
+                            className='w-full h-full object-cover transform hover:scale-110 transition-transform duration-500'
                             loading='lazy'
                             decoding='async'
                             onError={() => setImageError(true)}
@@ -60,7 +62,7 @@ const ProjectCard = ({
                             <button
                                 type='button'
                                 onClick={() => window.open(source_code_link, "_blank")}
-                                className='pointer-events-auto inline-flex items-center gap-2 px-3 py-2 text-xs font-semibold rounded-full bg-black/80 text-white backdrop-blur-sm hover:bg-black'
+                                className='pointer-events-auto inline-flex items-center gap-2 px-3 py-2 text-xs font-semibold rounded-full bg-black/80 text-white backdrop-blur-sm hover:bg-black transition-colors'
                             >
                                 <Github size={16} />
                                 Code
@@ -70,7 +72,7 @@ const ProjectCard = ({
                             <button
                                 type='button'
                                 onClick={() => window.open(live_link, "_blank")}
-                                className='pointer-events-auto inline-flex items-center gap-2 px-3 py-2 text-xs font-semibold rounded-full bg-violet-500 text-white hover:bg-violet-600'
+                                className='pointer-events-auto inline-flex items-center gap-2 px-3 py-2 text-xs font-semibold rounded-full bg-violet-500 text-white hover:bg-violet-600 transition-colors'
                             >
                                 <Globe2 size={16} />
                                 Live
@@ -79,12 +81,12 @@ const ProjectCard = ({
                     </div>
                 </div>
 
-                <div className='mt-5 space-y-2'>
+                <div className='mt-5 space-y-2 flex-grow'>
                     <h3 className='text-white font-bold text-[20px]'>{name}</h3>
-                    <p className='text-secondary text-[14px]'>{description}</p>
+                    <p className='text-secondary text-[14px] line-clamp-3'>{description}</p>
                 </div>
 
-                <div className='mt-4 flex flex-wrap gap-2'>
+                <div className='mt-4 flex flex-wrap gap-2 pt-2 border-t border-white/5'>
                     {tags.map((tag) => (
                         <span
                             key={`${name}-${tag.name}`}
@@ -95,12 +97,25 @@ const ProjectCard = ({
                     ))}
                 </div>
             </div>
-        </div>
+        </motion.div>
     );
 };
 
 const Works = () => {
     const [filter, setFilter] = useState("all");
+
+    // Velocity Skew Logic
+    const scrollVelocity = useMotionValue(0);
+    const skewVelocity = useSpring(scrollVelocity, {
+        stiffness: 100,
+        damping: 30
+    });
+    // Map velocity to skew degrees. range: [-50, 50] velocity -> [-2, 2] deg skew
+    const skewY = useTransform(skewVelocity, [-50, 50], [-3, 3]);
+
+    useLenis(({ velocity }) => {
+        scrollVelocity.set(velocity);
+    });
 
     const categoryCounts = useMemo(() => {
         const counts = projects.reduce((acc, project) => {
@@ -145,11 +160,10 @@ const Works = () => {
                             type='button'
                             onClick={() => setFilter(cat.id)}
                             aria-pressed={active}
-                            className={`px-4 py-2 rounded-full text-sm font-semibold border transition-colors duration-200 ${
-                                active
+                            className={`px-4 py-2 rounded-full text-sm font-semibold border transition-colors duration-200 ${active
                                     ? "bg-white text-primary border-white"
                                     : "bg-white/5 text-white border-white/10 hover:border-white/30"
-                            }`}
+                                }`}
                         >
                             {cat.label}
                             <span className='ml-2 text-xs opacity-80'>({count})</span>
@@ -163,7 +177,12 @@ const Works = () => {
                     <div className='col-span-full text-center text-secondary'>No projects in this category yet.</div>
                 ) : (
                     filteredProjects.map((project, index) => (
-                        <ProjectCard key={`${project.name}-${project.category}`} index={index} {...project} />
+                        <ProjectCard
+                            key={`${project.name}-${project.category}`}
+                            index={index}
+                            {...project}
+                            skewStyle={{ skewY }}
+                        />
                     ))
                 )}
             </div>
