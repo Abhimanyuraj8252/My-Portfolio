@@ -136,6 +136,8 @@ const BlogDetails = () => {
 
                     {/* Content */}
                     <article
+                        dir="ltr"
+                        style={{ direction: 'ltr', textAlign: 'left', unicodeBidi: 'embed' }}
                         className="prose prose-lg prose-invert max-w-none 
                             prose-headings:text-white prose-headings:font-bold
                             prose-p:text-white-100 prose-p:leading-relaxed

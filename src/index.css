@@ -12,6 +12,19 @@
   color-scheme: dark;
 }
 
+/* Force LTR direction globally */
+html, body, #root {
+  direction: ltr !important;
+  text-align: left !important;
+  unicode-bidi: embed !important;
+}
+
+/* Blog content LTR fix */
+.prose, .prose * {
+  direction: ltr !important;
+  unicode-bidi: embed !important;
+}
+
 /* Mobile Performance Optimizations */
 @media (max-width: 768px) {
   * {

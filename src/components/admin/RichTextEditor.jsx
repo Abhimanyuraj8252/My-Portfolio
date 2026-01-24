@@ -108,7 +108,52 @@ const RichTextEditor = ({ initialValue, onEditorChange }) => {
         });
 
         // Drag and drop functionality
+        const enforceLtr = () => {
+            const doc = editor.getDoc();
+            const body = editor.getBody();
+
+            if (doc?.documentElement) {
+                doc.documentElement.setAttribute('dir', 'ltr');
+                doc.documentElement.style.direction = 'ltr';
+                doc.documentElement.style.unicodeBidi = 'normal';
+                doc.documentElement.style.textAlign = 'left';
+            }
+
+            if (body) {
+                body.setAttribute('dir', 'ltr');
+                body.style.direction = 'ltr';
+                body.style.unicodeBidi = 'normal';
+                body.style.textAlign = 'left';
+            }
+
+            const currentNode = editor.selection?.getNode?.();
+            if (currentNode && currentNode.nodeType === 1) {
+                const element = currentNode;
+                element.setAttribute('dir', 'ltr');
+                element.style.direction = 'ltr';
+                element.style.unicodeBidi = 'normal';
+                element.style.textAlign = 'left';
+            }
+        };
+
         editor.on('init', function () {
+            const editorDocRoot = editor.getDoc()?.documentElement;
+            const editorBodyRoot = editor.getBody();
+
+            if (editorDocRoot) {
+                editorDocRoot.setAttribute('dir', 'ltr');
+                editorDocRoot.style.direction = 'ltr';
+                editorDocRoot.style.unicodeBidi = 'normal';
+                editorDocRoot.style.textAlign = 'left';
+            }
+
+            if (editorBodyRoot) {
+                editorBodyRoot.setAttribute('dir', 'ltr');
+                editorBodyRoot.style.direction = 'ltr';
+                editorBodyRoot.style.unicodeBidi = 'normal';
+                editorBodyRoot.style.textAlign = 'left';
+            }
+
             const editorBody = editor.getBody();
             const editorDoc = editor.getDoc();
 
@@ -277,8 +322,14 @@ const RichTextEditor = ({ initialValue, onEditorChange }) => {
             };
 
             addMediaCursor();
-            editor.on('NodeChange SetContent', addMediaCursor);
+            editor.on('NodeChange SetContent', () => {
+                addMediaCursor();
+                enforceLtr();
+            });
         });
+
+        editor.on('keydown', enforceLtr);
+        editor.on('input', enforceLtr);
     };
 
     return (
@@ -303,7 +354,7 @@ const RichTextEditor = ({ initialValue, onEditorChange }) => {
                     'charmap',        // Special characters
                     'code',           // Source code view
                     'codesample',     // Code snippets with syntax highlighting
-                    'directionality', // RTL/LTR text
+                    // 'directionality', // RTL/LTR text (disabled to prevent RTL typing)
                     'emoticons',      // Emoji picker
                     'fullscreen',     // Fullscreen mode
                     'help',           // Help dialog
@@ -430,6 +481,10 @@ const RichTextEditor = ({ initialValue, onEditorChange }) => {
 
                 // Content styling
                 content_style: `
+                    html {
+                        direction: ltr !important;
+                        unicode-bidi: normal !important;
+                    }
                     body { 
                         font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
                         font-size: 16px; 
@@ -437,8 +492,14 @@ const RichTextEditor = ({ initialValue, onEditorChange }) => {
                         color: #e0e0e0;
                         background-color: #1a1a2e;
                         padding: 20px;
-                        direction: ltr;
+                        direction: ltr !important;
+                        text-align: left !important;
+                        unicode-bidi: normal !important;
+                    }
+                    p, h1, h2, h3, h4, h5, h6, div, span, li, td, th {
+                        direction: ltr !important;
                         text-align: left;
+                        unicode-bidi: normal !important;
                     }
                     img { 
                         max-width: 100%; 
@@ -530,6 +591,8 @@ const RichTextEditor = ({ initialValue, onEditorChange }) => {
 
                 // Other settings
                 directionality: 'ltr',
+                text_direction: 'ltr',
+                forced_root_block_attrs: { dir: 'ltr' },
                 autosave_interval: '30s',
                 autosave_prefix: 'tinymce-autosave-',
                 autosave_restore_when_empty: true,
