@@ -437,6 +437,8 @@ const RichTextEditor = ({ initialValue, onEditorChange }) => {
                         color: #e0e0e0;
                         background-color: #1a1a2e;
                         padding: 20px;
+                        direction: ltr;
+                        text-align: left;
                     }
                     img { 
                         max-width: 100%; 
@@ -527,6 +529,7 @@ const RichTextEditor = ({ initialValue, onEditorChange }) => {
                 `,
 
                 // Other settings
+                directionality: 'ltr',
                 autosave_interval: '30s',
                 autosave_prefix: 'tinymce-autosave-',
                 autosave_restore_when_empty: true,
