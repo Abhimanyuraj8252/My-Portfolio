@@ -5,22 +5,18 @@ import { styles } from "../styles";
 import API_BASE_URL from "../config";
 
 import { FaStar, FaQuoteLeft, FaUser, FaPaperPlane, FaFilter, FaSortAmountDown } from "react-icons/fa";
-import { Navbar, Footer } from "../components";
+import { Navbar, Footer, CustomDropdown } from "../components";
 
 const FeedbackCard = ({ index, message, name, designation, company, rating }) => (
     <motion.div
-        initial={{ opacity: 0, scale: 0.95, y: 30 }}
-        whileInView={{ opacity: 1, scale: 1, y: 0 }}
-        viewport={{ once: true, margin: "-50px" }}
-        transition={{ duration: 0.5, delay: index * 0.1, type: "spring", stiffness: 100 }}
-        className="group h-full"
+        initial={{ opacity: 0, y: 30 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.5, delay: index * 0.1 }}
+        className="h-full"
     >
-        <div className='relative h-full bg-gradient-to-br from-[#1d1836]/90 via-[#231d42]/90 to-[#11071F]/90 backdrop-blur-2xl p-8 rounded-3xl border border-white/5 hover:border-violet-500/40 transition-all duration-500 hover:shadow-[0_20px_40px_-15px_rgba(139,92,246,0.3)] hover:-translate-y-2 w-full flex flex-col justify-between'>
-            {/* Quote Icon */}
-            <div className="absolute -top-5 -right-5 w-16 h-16 bg-gradient-to-br from-violet-600/20 to-purple-600/20 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-xl"></div>
-            <div className="absolute -top-4 -left-4 w-12 h-12 bg-gradient-to-br from-violet-500 via-purple-500 to-fuchsia-500 rounded-2xl flex items-center justify-center shadow-[0_10px_20px_rgba(139,92,246,0.5)] transform -rotate-6 group-hover:rotate-0 transition-transform duration-300">
-                <FaQuoteLeft className="text-white text-xl" />
-            </div>
+        <div className='relative h-full bg-[#1d1836] p-8 rounded-2xl border border-white/10 hover:border-violet-500/30 transition-all duration-300 w-full flex flex-col justify-between shadow-lg'>
+            <div className="absolute top-4 right-6 text-violet-500/20 text-6xl font-serif">"</div>
 
             <div className='pt-4'>
                 {/* Rating */}
@@ -67,6 +63,18 @@ const TestimonialsPage = () => {
     const [ratingFilter, setRatingFilter] = useState("all");
     const [sortBy, setSortBy] = useState("newest");
 
+    const ratingOptions = [
+        { value: 'all', label: 'All Ratings' },
+        { value: 'positive', label: 'Positive (⭐⭐⭐ - ⭐⭐⭐⭐⭐)' },
+        { value: 'negative', label: 'Negative (⭐ - ⭐⭐)' }
+    ];
+
+    const sortOptions = [
+        { value: 'newest', label: 'Newest First' },
+        { value: 'oldest', label: 'Oldest First' },
+        { value: 'highest', label: 'Highest Rated' }
+    ];
+
     const [form, setForm] = useState({
         name: "",
         rating: 5,
@@ -103,9 +111,10 @@ const TestimonialsPage = () => {
         let result = [...reviews];
 
         // 1. Filtering
-        if (ratingFilter !== "all") {
-            const starCount = parseInt(ratingFilter);
-            result = result.filter(r => r.rating === starCount);
+        if (ratingFilter === "positive") {
+            result = result.filter(r => r.rating >= 3);
+        } else if (ratingFilter === "negative") {
+            result = result.filter(r => r.rating <= 2);
         }
 
         // 2. Sorting
@@ -213,60 +222,59 @@ const TestimonialsPage = () => {
 
                 {/* Main Content */}
                 <main className={`${styles.padding} max-w-7xl mx-auto pb-20`}>
-                    {/* Two Column Layout */}
-                    <div className="grid lg:grid-cols-5 gap-12">
 
-                        {/* Left - Review Form */}
-                        <motion.div
-                            initial={{ opacity: 0, x: -30 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            transition={{ duration: 0.6, delay: 0.2 }}
-                            className="lg:col-span-2"
-                        >
-                            <div className="sticky top-28 bg-gradient-to-br from-[#1d1836]/90 to-[#11071F]/90 backdrop-blur-xl p-8 rounded-2xl border border-white/10 shadow-2xl">
-                                <div className="flex items-center gap-3 mb-6">
-                                    <div className="w-12 h-12 bg-gradient-to-br from-violet-600 to-purple-600 rounded-xl flex items-center justify-center shadow-lg shadow-violet-500/30">
-                                        <FaPaperPlane className="text-white" />
-                                    </div>
-                                    <div>
-                                        <h3 className="text-xl font-bold text-white">Leave a Review</h3>
-                                        <p className="text-secondary text-sm">Share your experience</p>
-                                    </div>
+                    {/* Top - Review Form */}
+                    <motion.div
+                        initial={{ opacity: 0, y: 30 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.6 }}
+                        className="mb-16 max-w-4xl mx-auto"
+                    >
+                        <div className="bg-[#1d1836] p-8 md:p-10 rounded-2xl border border-white/10 shadow-xl">
+                            <div className="flex items-center gap-3 mb-8">
+                                <div className="w-12 h-12 bg-violet-600 rounded-xl flex items-center justify-center shadow-lg">
+                                    <FaPaperPlane className="text-white" />
                                 </div>
+                                <div>
+                                    <h3 className="text-2xl font-bold text-white">Leave a Review</h3>
+                                    <p className="text-secondary text-sm mt-1">Share your experience working with me.</p>
+                                </div>
+                            </div>
 
-                                {submitted ? (
-                                    <motion.div
-                                        initial={{ scale: 0.9 }}
-                                        animate={{ scale: 1 }}
-                                        className="bg-gradient-to-r from-green-500/20 to-emerald-500/20 border border-green-500/50 p-6 rounded-xl text-center"
-                                    >
-                                        <div className="text-5xl mb-3">🎉</div>
-                                        <h4 className="text-white font-bold text-xl">Thank You!</h4>
-                                        <p className="text-secondary mt-2">Your review has been submitted for approval.</p>
-                                    </motion.div>
-                                ) : (
-                                    <form onSubmit={handleSubmit} className="flex flex-col gap-5">
-                                        {/* Rating */}
-                                        <div className="flex flex-col gap-2">
-                                            <label className="text-white font-medium text-sm">Your Rating</label>
-                                            <div className="flex gap-2">
-                                                {[1, 2, 3, 4, 5].map((star) => (
-                                                    <motion.div
-                                                        key={star}
-                                                        whileHover={{ scale: 1.2 }}
-                                                        whileTap={{ scale: 0.9 }}
-                                                    >
-                                                        <FaStar
-                                                            size={28}
-                                                            className={`cursor-pointer transition-colors ${star <= form.rating ? "text-yellow-500" : "text-gray-600 hover:text-yellow-500/50"}`}
-                                                            onClick={() => handleRating(star)}
-                                                        />
-                                                    </motion.div>
-                                                ))}
-                                            </div>
+                            {submitted ? (
+                                <motion.div
+                                    initial={{ scale: 0.9 }}
+                                    animate={{ scale: 1 }}
+                                    className="bg-gradient-to-r from-green-500/20 to-emerald-500/20 border border-green-500/50 p-6 rounded-xl text-center"
+                                >
+                                    <div className="text-5xl mb-3">🎉</div>
+                                    <h4 className="text-white font-bold text-xl">Thank You!</h4>
+                                    <p className="text-secondary mt-2">Your review has been submitted for approval.</p>
+                                </motion.div>
+                            ) : (
+                                <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+                                    {/* Rating */}
+                                    <div className="flex flex-col gap-2">
+                                        <label className="text-white font-medium text-sm">Your Rating</label>
+                                        <div className="flex gap-2">
+                                            {[1, 2, 3, 4, 5].map((star) => (
+                                                <motion.div
+                                                    key={star}
+                                                    whileHover={{ scale: 1.2 }}
+                                                    whileTap={{ scale: 0.9 }}
+                                                >
+                                                    <FaStar
+                                                        size={28}
+                                                        className={`cursor-pointer transition-colors ${star <= form.rating ? "text-yellow-500" : "text-gray-600 hover:text-yellow-500/50"}`}
+                                                        onClick={() => handleRating(star)}
+                                                    />
+                                                </motion.div>
+                                            ))}
                                         </div>
+                                    </div>
 
-                                        {/* Name */}
+                                    {/* Name & Designation Layer */}
+                                    <div className="grid md:grid-cols-2 gap-5">
                                         <label className="flex flex-col gap-2">
                                             <span className="text-white font-medium text-sm">Your Name *</span>
                                             <div className="relative">
@@ -278,13 +286,12 @@ const TestimonialsPage = () => {
                                                     onChange={handleChange}
                                                     placeholder="What's your name?"
                                                     required
-                                                    className="w-full bg-black-200/50 py-3.5 pl-11 pr-4 placeholder:text-secondary/50 text-white rounded-xl outline-none border border-white/10 focus:border-violet-500 transition-all font-medium"
+                                                    className="w-full bg-black-200/50 py-3 pl-11 pr-4 placeholder:text-secondary/50 text-white rounded-xl outline-none border border-white/10 focus:border-violet-500 transition-colors font-medium"
                                                     autoComplete="name"
                                                 />
                                             </div>
                                         </label>
 
-                                        {/* Designation */}
                                         <label className="flex flex-col gap-2">
                                             <span className="text-white font-medium text-sm">Designation (Optional)</span>
                                             <input
@@ -293,128 +300,100 @@ const TestimonialsPage = () => {
                                                 value={form.designation}
                                                 onChange={handleChange}
                                                 placeholder="e.g. CEO of Company"
-                                                className="w-full bg-black-200/50 py-3.5 px-4 placeholder:text-secondary/50 text-white rounded-xl outline-none border border-white/10 focus:border-violet-500 transition-all font-medium"
+                                                className="w-full bg-black-200/50 py-3 px-4 placeholder:text-secondary/50 text-white rounded-xl outline-none border border-white/10 focus:border-violet-500 transition-colors font-medium"
                                                 autoComplete="organization-title"
                                             />
                                         </label>
-
-                                        {/* Message */}
-                                        <label className="flex flex-col gap-2">
-                                            <span className="text-white font-medium text-sm">Your Review *</span>
-                                            <textarea
-                                                rows={4}
-                                                name="message"
-                                                value={form.message}
-                                                onChange={handleChange}
-                                                placeholder="Share your experience working with me..."
-                                                required
-                                                className="w-full bg-black-200/50 py-3.5 px-4 placeholder:text-secondary/50 text-white rounded-xl outline-none border border-white/10 focus:border-violet-500 transition-all font-medium resize-none"
-                                            />
-                                        </label>
-
-                                        {/* Submit */}
-                                        <motion.button
-                                            type="submit"
-                                            disabled={loading}
-                                            whileHover={{ scale: 1.02 }}
-                                            whileTap={{ scale: 0.98 }}
-                                            className="bg-gradient-to-r from-violet-600 to-purple-600 py-3.5 px-8 rounded-xl text-white font-bold shadow-lg shadow-violet-500/30 hover:shadow-violet-500/50 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                                        >
-                                            {loading ? (
-                                                <>
-                                                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                                                    Submitting...
-                                                </>
-                                            ) : (
-                                                <>
-                                                    <FaPaperPlane /> Submit Review
-                                                </>
-                                            )}
-                                        </motion.button>
-                                    </form>
-                                )}
-                            </div>
-                        </motion.div>
-
-                        {/* Right - Reviews List */}
-                        <div className="lg:col-span-3">
-                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 mb-10">
-                                <div>
-                                    <h2 className="text-white font-bold text-3xl mb-1">Client Reviews</h2>
-                                    <p className="text-secondary text-sm">
-                                        Showing <span className="text-violet-400 font-bold">{filteredReviews.length}</span> out of {reviews.length} reviews
-                                    </p>
-                                </div>
-
-                                {/* Filters & Sort Controls */}
-                                <div className="flex flex-wrap items-center gap-3">
-                                    <div className="relative group">
-                                        <div className="absolute inset-0 bg-violet-600 rounded-xl blur-md opacity-20 group-hover:opacity-40 transition-opacity"></div>
-                                        <div className="relative flex items-center bg-black-200/80 border border-white/10 rounded-xl p-1 backdrop-blur-md">
-                                            <div className="flex items-center pl-3 pr-2 text-secondary">
-                                                <FaFilter size={12} />
-                                            </div>
-                                            <select
-                                                value={ratingFilter}
-                                                onChange={(e) => setRatingFilter(e.target.value)}
-                                                className="bg-transparent text-white text-sm outline-none py-2 pr-3 cursor-pointer appearance-none"
-                                            >
-                                                <option value="all" className="bg-[#11071F]">All Ratings</option>
-                                                <option value="5" className="bg-[#11071F]">5 Stars Only</option>
-                                                <option value="4" className="bg-[#11071F]">4 Stars Only</option>
-                                                <option value="3" className="bg-[#11071F]">3 Stars Only</option>
-                                            </select>
-                                        </div>
                                     </div>
 
-                                    <div className="relative group">
-                                        <div className="absolute inset-0 bg-purple-600 rounded-xl blur-md opacity-20 group-hover:opacity-40 transition-opacity"></div>
-                                        <div className="relative flex items-center bg-black-200/80 border border-white/10 rounded-xl p-1 backdrop-blur-md">
-                                            <div className="flex items-center pl-3 pr-2 text-secondary">
-                                                <FaSortAmountDown size={12} />
-                                            </div>
-                                            <select
-                                                value={sortBy}
-                                                onChange={(e) => setSortBy(e.target.value)}
-                                                className="bg-transparent text-white text-sm outline-none py-2 pr-3 cursor-pointer appearance-none"
-                                            >
-                                                <option value="newest" className="bg-[#11071F]">Newest First</option>
-                                                <option value="oldest" className="bg-[#11071F]">Oldest First</option>
-                                                <option value="highest" className="bg-[#11071F]">Highest Rated</option>
-                                            </select>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            {fetchLoading ? (
-                                <div className="flex flex-col items-center justify-center py-32">
-                                    <div className="w-16 h-16 border-4 border-violet-500/30 border-t-violet-500 rounded-full animate-spin mb-6" />
-                                    <p className="text-secondary tracking-widest uppercase text-sm font-semibold animate-pulse">Loading amazing reviews...</p>
-                                </div>
-                            ) : filteredReviews.length > 0 ? (
-                                <div className="columns-1 sm:columns-2 gap-6 space-y-6">
-                                    {filteredReviews.map((review, index) => (
-                                        <div key={review.id} className="break-inside-avoid">
-                                            <FeedbackCard index={index} {...review} />
-                                        </div>
-                                    ))}
-                                </div>
-                            ) : (
-                                <motion.div
-                                    initial={{ opacity: 0, y: 30 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    className="flex flex-col items-center justify-center py-20 text-center bg-gradient-to-br from-[#1d1836]/50 to-[#11071F]/50 rounded-2xl border border-white/5"
-                                >
-                                    <div className="w-24 h-24 bg-gradient-to-br from-violet-600/20 to-purple-600/20 rounded-full flex items-center justify-center mb-6">
-                                        <FaQuoteLeft className="text-4xl text-violet-400" />
-                                    </div>
-                                    <h3 className="text-white text-xl font-bold mb-2">No Reviews Yet</h3>
-                                    <p className="text-secondary max-w-sm">
-                                        Be the first to share your experience! Your feedback helps others make informed decisions.
-                                    </p>
-                                </motion.div>
+                                    {/* Message */}
+                                    <label className="flex flex-col gap-2">
+                                        <span className="text-white font-medium text-sm">Your Review *</span>
+                                        <textarea
+                                            rows={4}
+                                            name="message"
+                                            value={form.message}
+                                            onChange={handleChange}
+                                            placeholder="Share your experience working with me..."
+                                            required
+                                            className="w-full bg-black-200/50 py-3.5 px-4 placeholder:text-secondary/50 text-white rounded-xl outline-none border border-white/10 focus:border-violet-500 transition-colors font-medium resize-none"
+                                        />
+                                    </label>
+
+                                    {/* Submit */}
+                                    <button
+                                        type="submit"
+                                        disabled={loading}
+                                        className="bg-violet-600 hover:bg-violet-700 py-3.5 px-8 rounded-xl text-white font-bold transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-2 w-full sm:w-auto self-start"
+                                    >
+                                        {loading ? (
+                                            <>
+                                                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                                                Submitting...
+                                            </>
+                                        ) : (
+                                            <>
+                                                <FaPaperPlane /> Submit Review
+                                            </>
+                                        )}
+                                    </button>
+                                </form>
                             )}
                         </div>
+                    </motion.div>
+
+                    {/* Bottom - Reviews List */}
+                    <div className="pt-8 border-t border-white/10">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 mb-10">
+                            <div>
+                                <h2 className="text-white font-bold text-3xl mb-1">Client Reviews</h2>
+                                <p className="text-secondary text-sm">
+                                    Showing <span className="text-violet-400 font-bold">{filteredReviews.length}</span> out of {reviews.length} reviews
+                                </p>
+                            </div>
+
+                            {/* Filters & Sort Controls */}
+                            <div className="flex flex-wrap items-center gap-3">
+                                <CustomDropdown
+                                    value={ratingFilter}
+                                    onChange={setRatingFilter}
+                                    options={ratingOptions}
+                                    icon={FaFilter}
+                                />
+                                <CustomDropdown
+                                    value={sortBy}
+                                    onChange={setSortBy}
+                                    options={sortOptions}
+                                    icon={FaSortAmountDown}
+                                />
+                            </div>
+                        </div>
+                        {fetchLoading ? (
+                            <div className="flex flex-col items-center justify-center py-20">
+                                <div className="w-12 h-12 border-4 border-violet-500/30 border-t-violet-500 rounded-full animate-spin mb-4" />
+                                <p className="text-secondary tracking-widest uppercase text-xs font-semibold">Loading reviews...</p>
+                            </div>
+                        ) : filteredReviews.length > 0 ? (
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                                {filteredReviews.map((review, index) => (
+                                    <FeedbackCard key={review.id} index={index} {...review} />
+                                ))}
+                            </div>
+                        ) : (
+                            <motion.div
+                                initial={{ opacity: 0, y: 30 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                className="flex flex-col items-center justify-center py-20 text-center bg-[#1d1836] rounded-2xl border border-white/5"
+                            >
+                                <div className="w-20 h-20 bg-violet-600/10 rounded-full flex items-center justify-center mb-6">
+                                    <FaQuoteLeft className="text-3xl text-violet-400" />
+                                </div>
+                                <h3 className="text-white text-xl font-bold mb-2">No Reviews Yet</h3>
+                                <p className="text-secondary max-w-sm">
+                                    Be the first to share your experience! Your feedback helps others make informed decisions.
+                                </p>
+                            </motion.div>
+                        )}
                     </div>
                 </main>
 
@@ -425,5 +404,3 @@ const TestimonialsPage = () => {
 };
 
 export default TestimonialsPage;
-
-

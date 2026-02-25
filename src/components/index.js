@@ -7,6 +7,7 @@ import Works from "./Works";
 import Feed from "./Feed";
 import Contact from "./Contact";
 import { ComputersCanvas, BallCanvas, EarthCanvas, StarsCanvas } from "./canvas";
+import CustomDropdown from "./CustomDropdown";
 
 import Footer from "./Footer";
 
@@ -24,4 +25,5 @@ export {
     EarthCanvas,
     StarsCanvas,
     Footer,
+    CustomDropdown,
 };

@@ -6,7 +6,7 @@ import { Helmet } from "react-helmet-async";
 import { styles } from "../styles";
 import API_BASE_URL from "../config";
 
-import { Navbar, Footer } from "../components";
+import { Navbar, Footer, CustomDropdown } from "../components";
 import { fadeIn, textVariant } from "../utils/motion";
 import { FaClock, FaCalendar, FaArrowRight, FaStar, FaBookOpen, FaFilter, FaSortAmountDown } from "react-icons/fa";
 
@@ -106,6 +106,11 @@ const Blogs = () => {
     const [filteredBlogs, setFilteredBlogs] = useState([]);
     const [categories, setCategories] = useState([]);
     const [loading, setLoading] = useState(true);
+
+    const sortOptions = [
+        { value: 'newest', label: 'Newest First' },
+        { value: 'oldest', label: 'Oldest First' }
+    ];
 
     // Feature States
     const [selectedCategory, setSelectedCategory] = useState("All");
@@ -232,18 +237,13 @@ const Blogs = () => {
                         {/* Sort Dropdown */}
                         <div className="relative group min-w-[160px]">
                             <div className="absolute inset-0 bg-purple-600 rounded-xl blur-md opacity-20 group-hover:opacity-40 transition-opacity"></div>
-                            <div className="relative flex items-center bg-black-200/80 border border-white/10 rounded-xl p-1 backdrop-blur-md">
-                                <div className="flex items-center pl-3 pr-2 text-secondary">
-                                    <FaSortAmountDown size={14} />
-                                </div>
-                                <select
+                            <div className="relative z-10 w-full">
+                                <CustomDropdown
                                     value={sortBy}
-                                    onChange={(e) => setSortBy(e.target.value)}
-                                    className="bg-transparent text-white text-sm outline-none py-2 pr-3 cursor-pointer appearance-none w-full"
-                                >
-                                    <option value="newest" className="bg-[#11071F]">Newest First</option>
-                                    <option value="oldest" className="bg-[#11071F]">Oldest First</option>
-                                </select>
+                                    onChange={setSortBy}
+                                    options={sortOptions}
+                                    icon={FaSortAmountDown}
+                                />
                             </div>
                         </div>
                     </div>
@@ -319,7 +319,7 @@ const Blogs = () => {
                                         {regularBlogs.length} {regularBlogs.length === 1 ? 'Article' : 'Articles'}
                                     </span>
                                 </h2>
-                                <div className='grid sm:grid-cols-2 lg:grid-cols-3 gap-8'>
+                                <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8'>
                                     {regularBlogs.map((blog, index) => (
                                         <div key={blog.id} className="h-full">
                                             <BlogCard index={index} {...blog} />
