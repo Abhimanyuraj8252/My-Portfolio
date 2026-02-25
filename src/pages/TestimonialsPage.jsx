@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { motion } from "framer-motion";
+import { m as motion } from "framer-motion";
 import { Helmet } from "react-helmet-async";
 import { styles } from "../styles";
 import API_BASE_URL from "../config";

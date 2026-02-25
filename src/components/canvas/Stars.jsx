@@ -50,7 +50,7 @@ const Stars = (props) => {
 
 const StarsCanvas = () => {
     return (
-        <div 
+        <div
             className='pointer-events-none'
             style={{
                 position: 'fixed',
@@ -64,8 +64,9 @@ const StarsCanvas = () => {
         >
             <Canvas
                 camera={{ position: [0, 0, 1] }}
-                dpr={1} // Low DPR for background stars
+                dpr={[1, 1.5]} // Limit pixel ratio
                 gl={{
+                    preserveDrawingBuffer: false,
                     powerPreference: 'low-power', // Low power for background element
                     antialias: false,
                 }}
@@ -84,4 +85,4 @@ const StarsCanvas = () => {
     );
 };
 
-export default StarsCanvas;
+export default React.memo(StarsCanvas);

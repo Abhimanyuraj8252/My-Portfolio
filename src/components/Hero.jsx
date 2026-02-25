@@ -1,4 +1,5 @@
-import { motion } from "framer-motion";
+import React from "react";
+import { m as motion } from "framer-motion";
 
 import { styles } from "../styles";
 // Removed 3D Canvas for performance
@@ -57,9 +58,10 @@ const Hero = () => {
                                         src="/abhimanyu-hero.jpg"
                                         alt="Abhimanyu Raj"
                                         className="w-full h-full object-cover object-center scale-100"
-                                        loading="lazy"
+                                        width={256}
+                                        height={256}
+                                        loading="eager"
                                         decoding="async"
-                                        fetchPriority="low"
                                         onError={(e) => { console.error('Image failed to load:', e.target.src); }}
                                     />
                                 </div>
@@ -112,7 +114,9 @@ const Hero = () => {
                                 src="/abhimanyu-hero.jpg"
                                 alt="Abhimanyu Raj"
                                 className="w-full h-full object-cover object-center transform group-hover:scale-110 transition-transform duration-700 ease-out"
-                                loading="lazy"
+                                width={288}
+                                height={288}
+                                loading="eager"
                                 decoding="async"
                             />
                             {/* Overlay gradient */}
@@ -135,4 +139,4 @@ const Hero = () => {
     );
 };
 
-export default Hero;
+export default React.memo(Hero);

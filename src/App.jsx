@@ -1,6 +1,7 @@
 // ... imports ...
 import React, { Suspense, lazy } from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { LazyMotion, domAnimation } from "framer-motion";
 import { Toaster } from "sonner";
 import { HelmetProvider } from "react-helmet-async";
 import { Navbar, Hero, StarsCanvas, Footer } from "./components"; // Keep critical above fold components eager
@@ -46,61 +47,63 @@ const App = () => {
       <AuthProvider>
         <BrowserRouter>
           <SmoothScroll>
-            <div className='relative z-0 bg-primary w-full overflow-clip min-h-screen'>
-              <ErrorBoundary>
-                <Suspense fallback={<PageLoader />}>
-                  <Routes>
-                    {/* Public Routes */}
-                    <Route
-                      path='/'
-                      element={
-                        <>
-                          {/* Navbar must be OUTSIDE any z-indexed wrapper */}
-                          <Navbar />
-                          <div className='bg-hero-pattern bg-cover bg-no-repeat bg-center'>
-                            <Hero />
-                          </div>
-                          <main>
-                            <About />
-                            <Experience />
-                            <Tech />
-                            <Works />
-                            <Feed />
-                            <div className='relative'>
-                              <Contact />
-                              <StarsCanvas />
+            <LazyMotion features={domAnimation} strict>
+              <div className='relative z-0 bg-primary w-full overflow-clip min-h-screen'>
+                <ErrorBoundary>
+                  <Suspense fallback={<PageLoader />}>
+                    <Routes>
+                      {/* Public Routes */}
+                      <Route
+                        path='/'
+                        element={
+                          <>
+                            {/* Navbar must be OUTSIDE any z-indexed wrapper */}
+                            <Navbar />
+                            <div className='bg-hero-pattern bg-cover bg-no-repeat bg-center'>
+                              <Hero />
                             </div>
-                          </main>
-                          <Footer />
-                        </>
-                      }
-                    />
+                            <main>
+                              <About />
+                              <Experience />
+                              <Tech />
+                              <Works />
+                              <Feed />
+                              <div className='relative'>
+                                <Contact />
+                                <StarsCanvas />
+                              </div>
+                            </main>
+                            <Footer />
+                          </>
+                        }
+                      />
 
-                    {/* Legal Routes */}
-                    <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-                    <Route path="/refund-policy" element={<RefundPolicy />} />
-                    <Route path="/terms-and-conditions" element={<TermsAndConditions />} />
+                      {/* Legal Routes */}
+                      <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+                      <Route path="/refund-policy" element={<RefundPolicy />} />
+                      <Route path="/terms-and-conditions" element={<TermsAndConditions />} />
 
-                    {/* Admin Routes */}
-                    <Route path="/blog" element={<Blogs />} />
-                    <Route path="/blog/:slug" element={<BlogDetails />} />
-                    <Route path="/testimonials" element={<TestimonialsPage />} />
+                      {/* Admin Routes */}
+                      <Route path="/blog" element={<Blogs />} />
+                      <Route path="/blog/:slug" element={<BlogDetails />} />
+                      <Route path="/testimonials" element={<TestimonialsPage />} />
 
-                    {/* Admin Routes - Hidden URL for security */}
-                    <Route path="/x7k9m2p4q/login" element={<Login />} />
+                      {/* Admin Routes - Hidden URL for security */}
+                      <Route path="/x7k9m2p4q/login" element={<Login />} />
 
-                    <Route path="/x7k9m2p4q" element={<ProtectedRoute />}>
-                      <Route index element={<Dashboard />} />
-                      <Route path="dashboard" element={<Dashboard />} />
-                      <Route path="blogs" element={<ManageBlogs />} />
-                      <Route path="testimonials" element={<ManageTestimonials />} />
-                      <Route path="contacts" element={<ManageContacts />} />
-                    </Route>
+                      <Route path="/x7k9m2p4q" element={<ProtectedRoute />}>
+                        <Route index element={<Dashboard />} />
+                        <Route path="dashboard" element={<Dashboard />} />
+                        <Route path="blogs" element={<ManageBlogs />} />
+                        <Route path="testimonials" element={<ManageTestimonials />} />
+                        <Route path="contacts" element={<ManageContacts />} />
+                      </Route>
 
-                  </Routes>
-                </Suspense>
-              </ErrorBoundary>
-            </div>
+                    </Routes>
+                  </Suspense>
+                </ErrorBoundary>
+              </div>
+            </LazyMotion>
             <Toaster position="bottom-right" richColors />
           </SmoothScroll>
         </BrowserRouter>

@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from "react";
-import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
+import { m as motion, useMotionValue, useSpring, useTransform } from "framer-motion";
 import { styles } from "../styles";
 import { projects } from "../constants";
 import { fadeIn, textVariant } from "../utils/motion";
@@ -161,8 +161,8 @@ const Works = () => {
                             onClick={() => setFilter(cat.id)}
                             aria-pressed={active}
                             className={`px-4 py-2 rounded-full text-sm font-semibold border transition-colors duration-200 ${active
-                                    ? "bg-white text-primary border-white"
-                                    : "bg-white/5 text-white border-white/10 hover:border-white/30"
+                                ? "bg-white text-primary border-white"
+                                : "bg-white/5 text-white border-white/10 hover:border-white/30"
                                 }`}
                         >
                             {cat.label}

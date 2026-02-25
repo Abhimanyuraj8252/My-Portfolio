@@ -1,7 +1,7 @@
 import React from "react";
 // import Tilt from "react-tilt"; // Using framer-motion instead for simpler setup or install react-tilt if needed by user
 // Using standard div for now, or can install react-tilt
-import { motion } from "framer-motion";
+import { m as motion } from "framer-motion";
 
 import { styles } from "../styles";
 import { services } from "../constants";
