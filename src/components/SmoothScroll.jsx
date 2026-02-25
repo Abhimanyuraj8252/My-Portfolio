@@ -7,6 +7,10 @@ const SmoothScroll = ({ children }) => {
     const reqIdRef = useRef(null);
 
     useEffect(() => {
+        // Disable Lenis entirely on mobile/touch interfaces to ensure native scroll works without interference
+        const isMobile = window.matchMedia('(max-width: 768px)').matches || ('ontouchstart' in window);
+        if (isMobile) return;
+
         const lenisInstance = new Lenis({
             duration: 1.2,
             easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),

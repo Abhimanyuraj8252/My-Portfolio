@@ -46,7 +46,7 @@ const App = () => {
       <AuthProvider>
         <BrowserRouter>
           <SmoothScroll>
-            <div className='relative z-0 bg-primary overflow-x-hidden min-h-dvh'>
+            <div className='relative z-0 bg-primary w-full overflow-clip min-h-screen'>
               <ErrorBoundary>
                 <Suspense fallback={<PageLoader />}>
                   <Routes>

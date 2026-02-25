@@ -13,13 +13,16 @@
 }
 
 /* Force LTR direction globally */
-html, body, #root {
+html,
+body,
+#root {
   direction: ltr;
   text-align: left;
 }
 
 /* Blog content LTR fix */
-.prose, .prose * {
+.prose,
+.prose * {
   direction: ltr;
 }
 
@@ -68,24 +71,14 @@ body {
   width: 100%;
   /* Removed height: 100% to let Lenis handle it via .lenis class or default */
   min-height: 100%;
-  overflow-x: hidden;
-  /* overflow-y: auto;  <-- Managed by Lenis */
-  -webkit-overflow-scrolling: touch;
-  overscroll-behavior-y: none;
 }
 
 body {
   position: relative;
-  touch-action: pan-y;
 }
 
 #root {
   width: 100%;
-  min-height: 100vh;
-  /* Fallback */
-  min-height: 100dvh;
-  /* Dynamic viewport height for mobile */
-  overflow-x: hidden;
 }
 
 /* Responsive container */
