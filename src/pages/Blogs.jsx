@@ -1,0 +1,275 @@
+import React, { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
+import { motion } from "framer-motion";
+import { Helmet } from "react-helmet-async";
+
+import { styles } from "../styles";
+import { Navbar, Footer } from "../components";
+import { fadeIn, textVariant } from "../utils/motion";
+import { FaClock, FaCalendar, FaArrowRight, FaStar, FaBookOpen } from "react-icons/fa";
+
+const BlogCard = ({ index, title, excerpt, content, slug, created_at, cover_image, category, tags, reading_time, featured }) => {
+    const description = excerpt || content?.replace(/<[^>]+>/g, '').substring(0, 120) + '...';
+
+    return (
+        <motion.div
+            initial={{ opacity: 0, y: 50 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5, delay: index * 0.1 }}
+            className="group"
+        >
+            <Link to={`/blog/${slug}`}>
+                <div className={`relative bg-gradient-to-br from-[#1d1836]/80 to-[#11071F]/80 backdrop-blur-xl rounded-2xl overflow-hidden border border-white/5 hover:border-violet-500/30 transition-all duration-500 hover:shadow-2xl hover:shadow-violet-500/10 hover:-translate-y-2 ${featured ? 'ring-2 ring-yellow-500/50' : ''}`}>
+                    {/* Image Container */}
+                    <div className='relative w-full h-[200px] overflow-hidden'>
+                        {cover_image ? (
+                            <img
+                                src={cover_image}
+                                alt={title}
+                                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                            />
+                        ) : (
+                            <div className="w-full h-full bg-gradient-to-br from-violet-900/50 to-purple-900/50 flex items-center justify-center">
+                                <FaBookOpen className="text-6xl text-violet-400/50" />
+                            </div>
+                        )}
+
+                        {/* Gradient Overlay */}
+                        <div className="absolute inset-0 bg-gradient-to-t from-[#11071F] via-transparent to-transparent opacity-60" />
+
+                        {/* Featured Badge */}
+                        {featured && (
+                            <div className="absolute top-4 right-4 bg-gradient-to-r from-yellow-500 to-orange-500 text-black px-3 py-1.5 rounded-full text-xs font-bold flex items-center gap-1 shadow-lg shadow-yellow-500/30">
+                                <FaStar className="text-[10px]" /> Featured
+                            </div>
+                        )}
+
+                        {/* Category Badge */}
+                        {category && (
+                            <div className="absolute bottom-4 left-4 bg-violet-600/90 backdrop-blur-sm text-white px-4 py-1.5 rounded-full text-xs font-semibold shadow-lg">
+                                {category}
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Content */}
+                    <div className='p-6'>
+                        <h3 className='text-white font-bold text-xl mb-3 line-clamp-2 group-hover:text-violet-400 transition-colors'>
+                            {title}
+                        </h3>
+                        <p className='text-secondary text-sm leading-relaxed line-clamp-2 mb-4'>
+                            {description}
+                        </p>
+
+                        {/* Tags */}
+                        {tags?.length > 0 && (
+                            <div className="flex gap-2 mb-4 flex-wrap">
+                                {tags.slice(0, 3).map((tag, i) => (
+                                    <span
+                                        key={i}
+                                        className="bg-white/5 text-secondary text-xs px-3 py-1 rounded-full border border-white/10 hover:border-violet-500/30 transition-colors"
+                                    >
+                                        #{tag}
+                                    </span>
+                                ))}
+                            </div>
+                        )}
+
+                        {/* Meta Info */}
+                        <div className="flex justify-between items-center pt-4 border-t border-white/5">
+                            <div className="flex items-center gap-4 text-secondary text-xs">
+                                <span className="flex items-center gap-1.5">
+                                    <FaCalendar className="text-violet-400" />
+                                    {new Date(created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+                                </span>
+                                <span className="flex items-center gap-1.5">
+                                    <FaClock className="text-violet-400" />
+                                    {reading_time || 5} min
+                                </span>
+                            </div>
+                            <div className="text-violet-400 group-hover:translate-x-1 transition-transform">
+                                <FaArrowRight />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </Link>
+        </motion.div>
+    );
+};
+
+const Blogs = () => {
+    const [blogs, setBlogs] = useState([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchBlogs = async () => {
+            try {
+                const res = await fetch('http://localhost:5000/api/blogs');
+                if (res.ok) {
+                    const data = await res.json();
+                    // Filter published blogs
+                    const publishedBlogs = data.filter(blog => blog.published);
+                    setBlogs(publishedBlogs);
+                }
+            } catch (err) {
+                console.error('Error fetching blogs:', err);
+            }
+            setLoading(false);
+        };
+
+        fetchBlogs();
+    }, []);
+
+    const featuredBlog = blogs.find(blog => blog.featured);
+    const regularBlogs = blogs.filter(blog => !blog.featured);
+
+    return (
+        <>
+            <Helmet>
+                <title>Blog | Abhimanyu Raj - Software Engineer</title>
+                <meta name="description" content="Read insights, tutorials, and updates on Web Development, Software Engineering, and Technology." />
+            </Helmet>
+
+            <div className="bg-primary min-h-screen">
+                {/* Hero Header */}
+                <div className="relative overflow-hidden">
+                    {/* Animated Background Orbs */}
+                    <div className="absolute inset-0 overflow-hidden">
+                        <motion.div
+                            animate={{ scale: [1, 1.3, 1], rotate: [0, 60, 0] }}
+                            transition={{ duration: 25, repeat: Infinity, repeatType: "mirror" }}
+                            className="absolute -top-[30%] -left-[15%] w-[60%] h-[60%] rounded-full bg-gradient-to-br from-violet-600/30 to-purple-800/20 blur-[120px]"
+                        />
+                        <motion.div
+                            animate={{ scale: [1, 1.2, 1], x: [0, 50, 0] }}
+                            transition={{ duration: 18, repeat: Infinity, repeatType: "mirror" }}
+                            className="absolute top-[5%] -right-[15%] w-[45%] h-[45%] rounded-full bg-gradient-to-bl from-blue-600/25 to-cyan-600/15 blur-[100px]"
+                        />
+                    </div>
+
+                    <Navbar />
+
+                    <div className={`${styles.padding} max-w-7xl mx-auto pt-32 pb-16 relative z-10`}>
+                        <motion.div
+                            initial={{ opacity: 0, y: 30 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.6 }}
+                        >
+                            <p className={`${styles.sectionSubText} text-violet-400`}>My Thoughts & Tutorials</p>
+                            <h1 className={`${styles.sectionHeadText} bg-gradient-to-r from-white via-violet-200 to-violet-400 bg-clip-text text-transparent`}>
+                                Blog.
+                            </h1>
+                            <p className="mt-4 text-secondary max-w-2xl text-lg">
+                                Insights, tutorials, and stories from my journey as a software engineer.
+                                Exploring web development, technology trends, and coding best practices.
+                            </p>
+                        </motion.div>
+                    </div>
+                </div>
+
+                {/* Main Content */}
+                <main className={`${styles.padding} max-w-7xl mx-auto pb-20`}>
+                    {loading ? (
+                        <div className="flex flex-col items-center justify-center py-20">
+                            <div className="w-16 h-16 border-4 border-violet-500 border-t-transparent rounded-full animate-spin mb-4" />
+                            <p className="text-secondary">Loading articles...</p>
+                        </div>
+                    ) : blogs.length > 0 ? (
+                        <>
+                            {/* Featured Blog */}
+                            {featuredBlog && (
+                                <motion.div
+                                    initial={{ opacity: 0, y: 30 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    className="mb-16"
+                                >
+                                    <h2 className="text-white font-bold text-2xl mb-6 flex items-center gap-2">
+                                        <FaStar className="text-yellow-500" /> Featured Article
+                                    </h2>
+                                    <Link to={`/blog/${featuredBlog.slug}`}>
+                                        <div className="group relative bg-gradient-to-br from-[#1d1836] to-[#11071F] rounded-3xl overflow-hidden border border-violet-500/20 hover:border-violet-500/50 transition-all duration-500 hover:shadow-2xl hover:shadow-violet-500/20">
+                                            <div className="grid md:grid-cols-2 gap-0">
+                                                <div className="relative h-[300px] md:h-full overflow-hidden">
+                                                    {featuredBlog.cover_image ? (
+                                                        <img
+                                                            src={featuredBlog.cover_image}
+                                                            alt={featuredBlog.title}
+                                                            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                                                        />
+                                                    ) : (
+                                                        <div className="w-full h-full bg-gradient-to-br from-violet-900 to-purple-900 flex items-center justify-center">
+                                                            <FaBookOpen className="text-8xl text-violet-400/30" />
+                                                        </div>
+                                                    )}
+                                                    <div className="absolute inset-0 bg-gradient-to-r from-transparent to-[#11071F]/80 md:block hidden" />
+                                                </div>
+                                                <div className="p-8 flex flex-col justify-center">
+                                                    {featuredBlog.category && (
+                                                        <span className="bg-violet-600 text-white px-4 py-1.5 rounded-full text-xs font-semibold w-fit mb-4">
+                                                            {featuredBlog.category}
+                                                        </span>
+                                                    )}
+                                                    <h3 className="text-white font-bold text-3xl mb-4 group-hover:text-violet-400 transition-colors">
+                                                        {featuredBlog.title}
+                                                    </h3>
+                                                    <p className="text-secondary mb-6 line-clamp-3">
+                                                        {featuredBlog.excerpt || featuredBlog.content?.replace(/<[^>]+>/g, '').substring(0, 200)}
+                                                    </p>
+                                                    <div className="flex items-center gap-4 text-secondary text-sm">
+                                                        <span className="flex items-center gap-2">
+                                                            <FaCalendar className="text-violet-400" />
+                                                            {new Date(featuredBlog.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+                                                        </span>
+                                                        <span className="flex items-center gap-2">
+                                                            <FaClock className="text-violet-400" />
+                                                            {featuredBlog.reading_time || 5} min read
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </Link>
+                                </motion.div>
+                            )}
+
+                            {/* Blog Grid */}
+                            <div>
+                                <h2 className="text-white font-bold text-2xl mb-6">
+                                    {featuredBlog ? 'More Articles' : 'All Articles'}
+                                </h2>
+                                <div className='grid sm:grid-cols-2 lg:grid-cols-3 gap-8'>
+                                    {(featuredBlog ? regularBlogs : blogs).map((blog, index) => (
+                                        <BlogCard key={blog.id} index={index} {...blog} />
+                                    ))}
+                                </div>
+                            </div>
+                        </>
+                    ) : (
+                        /* Empty State */
+                        <motion.div
+                            initial={{ opacity: 0, y: 30 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            className="flex flex-col items-center justify-center py-20 text-center"
+                        >
+                            <div className="w-32 h-32 bg-gradient-to-br from-violet-600/20 to-purple-600/20 rounded-full flex items-center justify-center mb-6">
+                                <FaBookOpen className="text-5xl text-violet-400" />
+                            </div>
+                            <h3 className="text-white text-2xl font-bold mb-2">No Articles Yet</h3>
+                            <p className="text-secondary max-w-md">
+                                I'm working on some amazing content. Check back soon for tutorials, insights, and tech stories!
+                            </p>
+                        </motion.div>
+                    )}
+                </main>
+
+                {/* Footer */}
+                <Footer />
+            </div>
+        </>
+    );
+};
+
+export default Blogs;
+

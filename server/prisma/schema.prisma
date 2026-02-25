@@ -1,0 +1,56 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "cockroachdb"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  email     String   @unique
+  password  String
+  createdAt DateTime @default(now())
+}
+
+model Blog {
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  title        String
+  excerpt      String?
+  content      String
+  author       String   @default("Admin")
+  category     String?
+  cover_image  String?
+  created_at   DateTime @default(now())
+  featured     Boolean  @default(false)
+  published    Boolean  @default(false)
+  reading_time Int      @default(5)
+  slug         String?  @unique
+  tags         String[] @default([])
+  updated_at   DateTime @updatedAt
+}
+
+model Testimonial {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name        String
+  designation String?
+  company     String?
+  image       String?
+  message     String
+  isApproved  Boolean  @default(false)
+  created_at  DateTime @default(now())
+  rating      Int      @default(5)
+}
+
+model ContactMessage {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name       String
+  email      String
+  subject    String?
+  message    String
+  isRead     Boolean  @default(false)
+  budget     String?
+  created_at DateTime @default(now())
+  mobile     String?
+}
