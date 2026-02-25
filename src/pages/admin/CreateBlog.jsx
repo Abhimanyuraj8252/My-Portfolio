@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import Sidebar from "../../components/admin/Sidebar";
+import API_BASE_URL from "../../config";
 import RichTextEditor from "../../components/admin/RichTextEditor";
 
 
@@ -36,7 +37,7 @@ const CreateBlog = () => {
         };
 
         try {
-            const res = await fetch('http://localhost:5000/api/blogs', {
+            const res = await fetch(`${API_BASE_URL}/api/blogs`, {
                 method: 'POST',
                 headers: getHeaders(),
                 body: JSON.stringify(blogData)
