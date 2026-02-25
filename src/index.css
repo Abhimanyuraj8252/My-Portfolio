@@ -14,15 +14,13 @@
 
 /* Force LTR direction globally */
 html, body, #root {
-  direction: ltr !important;
-  text-align: left !important;
-  unicode-bidi: embed !important;
+  direction: ltr;
+  text-align: left;
 }
 
 /* Blog content LTR fix */
 .prose, .prose * {
-  direction: ltr !important;
-  unicode-bidi: embed !important;
+  direction: ltr;
 }
 
 /* Mobile Performance Optimizations */

@@ -533,7 +533,7 @@ const ManageBlogs = () => {
                                 <label className="block text-secondary mb-2 text-sm md:text-base">Content *</label>
                                 <div className="rounded-lg overflow-hidden">
                                     <RichTextEditor
-                                        initialValue={form.content}
+                                        value={form.content}
                                         onEditorChange={handleContentChange}
                                     />
                                 </div>

@@ -74,7 +74,7 @@ const CreateBlog = () => {
 
                     <div className="bg-white rounded-lg overflow-hidden text-black">
                         <RichTextEditor
-                            initialValue=""
+                            value={content}
                             onEditorChange={(newContent) => setContent(newContent)}
                         />
                     </div>
