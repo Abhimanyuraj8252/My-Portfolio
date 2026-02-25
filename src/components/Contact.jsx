@@ -1,13 +1,13 @@
 import React, { useRef, useState, useCallback } from "react";
 import { m as motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
+import { FaEnvelope, FaMapMarkerAlt, FaWhatsapp } from 'react-icons/fa';
 
 import { styles } from "../styles";
-import { EarthCanvas } from "./canvas";
 import { SectionWrapper } from "../hoc";
 import API_BASE_URL from "../config";
 
-import { slideIn } from "../utils/motion";
+import { slideIn, fadeIn } from "../utils/motion";
 
 
 // Template ID, Service ID, Public Key placeholder
@@ -47,6 +47,33 @@ const ThankYouModal = React.memo(({ isOpen, onClose }) => {
         </AnimatePresence>
     );
 });
+
+const ContactCard = ({ icon: Icon, title, content, link, index }) => (
+    <motion.div
+        variants={fadeIn("left", "spring", index * 0.3, 0.75)}
+        className="w-full relative group"
+    >
+        {/* Animated Glow Effect background */}
+        <div className="absolute -inset-0.5 bg-gradient-to-r from-violet-600 to-cyan-500 rounded-2xl blur opacity-20 group-hover:opacity-60 transition duration-500 animate-tilt"></div>
+
+        <a
+            href={link}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="relative flex items-center gap-4 bg-tertiary p-5 sm:p-6 rounded-2xl border border-white/10 hover:border-white/20 transition-all duration-300"
+        >
+            <div className="flex-shrink-0 w-12 h-12 flex items-center justify-center rounded-full bg-primary border border-white/5 group-hover:bg-primary/80 transition-colors">
+                <Icon className="text-2xl text-[#915eff] group-hover:text-cyan-400 transition-colors" />
+            </div>
+            <div className="flex flex-col overflow-hidden">
+                <h4 className="text-white font-bold text-[16px] sm:text-[18px]">{title}</h4>
+                <p className="text-secondary text-[12px] sm:text-[14px] mt-1 truncate max-w-full">
+                    {content}
+                </p>
+            </div>
+        </a>
+    </motion.div>
+);
 
 const Contact = () => {
     const formRef = useRef();
@@ -134,73 +161,98 @@ const Contact = () => {
         }
     }, [form]);
 
+    const contactMethods = [
+        {
+            title: "Email",
+            content: "abhimanyuraj134@gmail.com",
+            icon: FaEnvelope,
+            link: "mailto:abhimanyuraj134@gmail.com"
+        },
+        {
+            title: "WhatsApp",
+            content: "Chat with me directly",
+            icon: FaWhatsapp,
+            link: "https://wa.me/918252XXXXXX" // Update with your actual WhatsApp link
+        },
+        {
+            title: "Location",
+            content: "Remote / Global",
+            icon: FaMapMarkerAlt,
+            link: "https://www.google.com/maps"
+        }
+    ];
+
     return (
         <div
             className={`xl:mt-12 flex xl:flex-row flex-col-reverse gap-10 overflow-hidden`}
         >
             <ThankYouModal isOpen={showThankYou} onClose={() => setShowThankYou(false)} />
 
+            {/* Left Form Panel */}
             <motion.div
                 variants={slideIn("left", "tween", 0.2, 1)}
-                className='flex-[0.75] bg-black-100 p-8 rounded-2xl'
+                className='flex-[0.6] bg-black-100 p-6 sm:p-8 rounded-2xl relative z-10'
             >
+                {/* Subtle Background glow for the form */}
+                <div className="absolute top-0 right-0 w-64 h-64 bg-violet-700/10 rounded-full blur-[100px] pointer-events-none -z-10" />
+
                 <p className={styles.sectionSubText}>Get in touch</p>
                 <h3 className={styles.sectionHeadText}>Contact.</h3>
 
                 <form
                     ref={formRef}
                     onSubmit={handleSubmit}
-                    className='mt-12 flex flex-col gap-8'
+                    className='mt-8 flex flex-col gap-6 sm:gap-8'
                 >
                     <div className="flex flex-col md:flex-row gap-6">
-                        <label className='flex flex-col flex-1'>
-                            <span className='text-white font-medium mb-4'>Your Name</span>
+                        <label className='flex flex-col flex-1 pointer-events-auto'>
+                            <span className='text-white font-medium mb-3 sm:mb-4'>Your Name</span>
                             <input
                                 type='text'
                                 name='name'
                                 value={form.name}
                                 onChange={handleChange}
                                 placeholder="What's your good name?"
-                                className='bg-tertiary py-4 px-6 placeholder:text-secondary text-white rounded-lg outline-none border-none font-medium'
+                                className='bg-primary/50 py-3 sm:py-4 px-4 sm:px-6 placeholder:text-secondary text-white rounded-xl outline-none border border-white/5 focus:border-violet-500/50 transition-colors font-medium'
                                 autoComplete="name"
                             />
                         </label>
-                        <label className='flex flex-col flex-1'>
-                            <span className='text-white font-medium mb-4'>Mobile / WhatsApp</span>
+                        <label className='flex flex-col flex-1 pointer-events-auto'>
+                            <span className='text-white font-medium mb-3 sm:mb-4'>Mobile / WhatsApp</span>
                             <input
                                 type='tel'
                                 name='mobile'
                                 value={form.mobile}
                                 onChange={handleChange}
                                 placeholder="Your Contact Number"
-                                className='bg-tertiary py-4 px-6 placeholder:text-secondary text-white rounded-lg outline-none border-none font-medium'
+                                className='bg-primary/50 py-3 sm:py-4 px-4 sm:px-6 placeholder:text-secondary text-white rounded-xl outline-none border border-white/5 focus:border-violet-500/50 transition-colors font-medium'
                                 autoComplete="tel"
                             />
                         </label>
                     </div>
 
-                    <label className='flex flex-col'>
-                        <span className='text-white font-medium mb-4'>Your Email</span>
+                    <label className='flex flex-col pointer-events-auto'>
+                        <span className='text-white font-medium mb-3 sm:mb-4'>Your Email</span>
                         <input
                             type='email'
                             name='email'
                             value={form.email}
                             onChange={handleChange}
                             placeholder="What's your web address?"
-                            className='bg-tertiary py-4 px-6 placeholder:text-secondary text-white rounded-lg outline-none border-none font-medium'
+                            className='bg-primary/50 py-3 sm:py-4 px-4 sm:px-6 placeholder:text-secondary text-white rounded-xl outline-none border border-white/5 focus:border-violet-500/50 transition-colors font-medium'
                             autoComplete="email"
                         />
                     </label>
 
                     <div className="flex flex-col md:flex-row gap-6">
-                        <label className='flex flex-col flex-1'>
-                            <span className='text-white font-medium mb-4'>Service Interested In</span>
+                        <label className='flex flex-col flex-1 pointer-events-auto'>
+                            <span className='text-white font-medium mb-3 sm:mb-4'>Service Interested In</span>
                             <div className="relative">
                                 <select
                                     name='service'
                                     value={form.service}
                                     onChange={handleChange}
-                                    className='bg-tertiary py-4 px-6 placeholder:text-secondary text-white rounded-lg outline-none border-none font-medium w-full appearance-none cursor-pointer'
+                                    className='bg-primary/50 py-3 sm:py-4 px-4 sm:px-6 placeholder:text-secondary text-white rounded-xl outline-none border border-white/5 focus:border-violet-500/50 transition-colors font-medium w-full appearance-none cursor-pointer'
                                 >
                                     <option value="" disabled>Select a Service</option>
                                     <option value="Website Development">Website Development</option>
@@ -221,47 +273,62 @@ const Contact = () => {
                             <motion.label
                                 initial={{ opacity: 0, y: -20 }}
                                 animate={{ opacity: 1, y: 0 }}
-                                className='flex flex-col flex-1'
+                                className='flex flex-col flex-1 pointer-events-auto'
                             >
-                                <span className='text-white font-medium mb-4'>Your Budget</span>
+                                <span className='text-white font-medium mb-3 sm:mb-4'>Your Budget</span>
                                 <input
                                     type='text'
                                     name='budget'
                                     value={form.budget}
                                     onChange={handleChange}
                                     placeholder="Estimated Budget (e.g. $500 - $1000)"
-                                    className='bg-tertiary py-4 px-6 placeholder:text-secondary text-white rounded-lg outline-none border-none font-medium'
+                                    className='bg-primary/50 py-3 sm:py-4 px-4 sm:px-6 placeholder:text-secondary text-white rounded-xl outline-none border border-white/5 focus:border-violet-500/50 transition-colors font-medium'
                                 />
                             </motion.label>
                         )}
                     </div>
 
-                    <label className='flex flex-col'>
-                        <span className='text-white font-medium mb-4'>Your Message</span>
+                    <label className='flex flex-col pointer-events-auto'>
+                        <span className='text-white font-medium mb-3 sm:mb-4'>Your Message</span>
                         <textarea
                             rows={7}
                             name='message'
                             value={form.message}
                             onChange={handleChange}
                             placeholder='What you want to say?'
-                            className='bg-tertiary py-4 px-6 placeholder:text-secondary text-white rounded-lg outline-none border-none font-medium'
+                            className='bg-primary/50 py-3 sm:py-4 px-4 sm:px-6 placeholder:text-secondary text-white rounded-xl outline-none border border-white/5 focus:border-violet-500/50 transition-colors font-medium resize-none'
                         />
                     </label>
 
                     <button
                         type='submit'
-                        className='bg-tertiary py-3 px-8 rounded-xl outline-none w-fit text-white font-bold shadow-md shadow-primary'
+                        className='bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 py-4 px-8 rounded-xl outline-none w-full sm:w-fit text-white font-bold shadow-lg shadow-violet-500/30 transition-all duration-300 pointer-events-auto'
                     >
-                        {loading ? "Sending..." : "Send"}
+                        {loading ? "Sending Message..." : "Send Message"}
                     </button>
                 </form>
             </motion.div>
 
+            {/* Right Information Panel (Replaces Earth Canvas) */}
             <motion.div
                 variants={slideIn("right", "tween", 0.2, 1)}
-                className='xl:flex-1 xl:h-auto md:h-[550px] h-[350px]'
+                className='xl:flex-[0.4] xl:h-auto md:h-auto flex flex-col justify-center'
             >
-                <EarthCanvas />
+                <div className="w-full flex flex-col gap-6 sm:gap-8 px-2 sm:px-4 py-8">
+                    <div className="mb-4">
+                        <h4 className="text-2xl sm:text-3xl font-bold text-white mb-4">Let's create something <span className="text-[#915eff]">amazing</span> together.</h4>
+                        <p className="text-secondary text-sm sm:text-base leading-relaxed">
+                            Whether you have a project in mind, need technical consultation, or just want to say hi,
+                            I'm always open to discussing new opportunities and challenges.
+                        </p>
+                    </div>
+
+                    <div className="flex flex-col gap-4 sm:gap-5">
+                        {contactMethods.map((method, index) => (
+                            <ContactCard key={`contact-method-${index}`} index={index} {...method} />
+                        ))}
+                    </div>
+                </div>
             </motion.div>
         </div>
     );

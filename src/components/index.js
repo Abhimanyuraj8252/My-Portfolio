@@ -6,7 +6,7 @@ import Experience from "./Experience";
 import Works from "./Works";
 import Feed from "./Feed";
 import Contact from "./Contact";
-import { ComputersCanvas, BallCanvas, EarthCanvas, StarsCanvas } from "./canvas";
+import { ComputersCanvas, BallCanvas, StarsCanvas } from "./canvas";
 import CustomDropdown from "./CustomDropdown";
 
 import Footer from "./Footer";
@@ -22,7 +22,6 @@ export {
     Contact,
     ComputersCanvas,
     BallCanvas,
-    EarthCanvas,
     StarsCanvas,
     Footer,
     CustomDropdown,
