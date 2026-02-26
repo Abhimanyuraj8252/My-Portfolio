@@ -293,7 +293,7 @@ const ManageTestimonials = () => {
                     />
 
                     {/* Modal */}
-                    <div className="fixed inset-4 md:inset-auto md:top-1/2 md:left-1/2 md:-translate-x-1/2 md:-translate-y-1/2 z-50 bg-tertiary rounded-2xl p-5 md:p-6 md:w-full md:max-w-lg flex flex-col max-h-[calc(100vh-32px)] overflow-y-auto">
+                    <div className="fixed inset-4 md:inset-auto md:top-1/2 md:left-1/2 md:-translate-x-1/2 md:-translate-y-1/2 z-50 bg-tertiary rounded-2xl p-5 md:p-6 md:w-full md:max-w-lg flex flex-col max-h-[calc(100vh-32px)] overflow-y-auto" data-lenis-prevent>
                         {/* Modal Header */}
                         <div className="flex justify-between items-center mb-6">
                             <h2 className="text-xl md:text-2xl font-bold text-white">Edit Testimonial</h2>

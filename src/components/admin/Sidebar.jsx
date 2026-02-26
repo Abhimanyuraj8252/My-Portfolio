@@ -170,7 +170,10 @@ const Sidebar = ({ isOpen, onClose }) => {
                 </div>
 
                 {/* Navigation */}
-                <nav className="flex flex-col gap-2 flex-1 overflow-y-auto scrollbar-none pb-2">
+                <nav
+                    className="flex flex-col gap-2 flex-1 overflow-y-auto scrollbar-none pb-2"
+                    data-lenis-prevent
+                >
                     <button
                         onClick={() => { openPalette(); if (onClose) onClose(); }}
                         className="flex items-center gap-3 px-4 py-3 rounded-lg transition-all text-base border-b border-white/10 text-gray-400 hover:text-white hover:bg-white/5 mb-2 text-left"

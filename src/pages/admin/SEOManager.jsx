@@ -274,7 +274,7 @@ const SEOManager = () => {
                     </button>
                   </div>
 
-                  <div className="space-y-2 overflow-y-auto pr-1 custom-scrollbar flex-1">
+                  <div className="space-y-2 overflow-y-auto pr-1 custom-scrollbar flex-1" data-lenis-prevent>
                     {isLoading ? (
                       <div className="flex justify-center py-8"><RefreshCw className="animate-spin text-indigo-500" /></div>
                     ) : filteredRecords.length === 0 ? (
@@ -302,7 +302,7 @@ const SEOManager = () => {
               </div>
 
               {/* Right Column: Editor & Preview (70%) */}
-              <div className={`w-full lg:w-[70%] flex-col gap-6 ${!showMobileEditor ? 'hidden lg:flex' : 'flex'} h-full overflow-y-auto custom-scrollbar pb-20 lg:pb-0`}>
+              <div className={`w-full lg:w-[70%] flex-col gap-6 ${!showMobileEditor ? 'hidden lg:flex' : 'flex'} h-full overflow-y-auto custom-scrollbar pb-20 lg:pb-0`} data-lenis-prevent>
                 {selectedRecord ? (
                   <>
                     {/* Mobile Back Button */}

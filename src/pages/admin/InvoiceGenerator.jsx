@@ -261,7 +261,7 @@ const InvoiceForm = ({ invoice: editing, onClose, onSaved, settings }) => {
         </div>
 
         {/* Scrollable body */}
-        <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-5 space-y-4 custom-scrollbar">
+        <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-5 space-y-4 custom-scrollbar" data-lenis-prevent>
 
           {/* Company / Sender Details */}
           <Section title="Your Company Details" icon={Building2} defaultOpen={false}>
@@ -274,7 +274,7 @@ const InvoiceForm = ({ invoice: editing, onClose, onSaved, settings }) => {
               <div><label className="label-xs">GSTIN</label><input value={company.gstNo} onChange={e => setComp("gstNo", e.target.value)} placeholder="22AAAAA0000A1Z5" className="form-input font-mono" /></div>
             </div>
             <div><label className="label-xs">Address</label><textarea value={company.address} onChange={e => setComp("address", e.target.value)} rows={2} className="form-input resize-none" placeholder="Office/Street, City, State, PIN" /></div>
-            
+
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-3">
               <div>
                 <label className="label-xs">Bank Details</label>
@@ -512,9 +512,9 @@ const InvoiceGenerator = () => {
   const fetchSettings = useCallback(async () => {
     try { const r = await fetch(`${API_BASE_URL}/api/settings`); if (r.ok) setSettings(await r.json()); } catch (e) { console.error(e); }
   }, []);
-  useEffect(() => { 
-    fetchInvoices(); 
-    fetchSettings(); 
+  useEffect(() => {
+    fetchInvoices();
+    fetchSettings();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -608,7 +608,7 @@ const InvoiceGenerator = () => {
               <>
                 {/* Desktop Table */}
                 <div className="hidden md:block">
-                  <div className="overflow-x-auto min-h-[450px]">
+                  <div className="overflow-x-auto min-h-[450px]" data-lenis-prevent>
                     <div className="inline-block min-w-full align-middle pb-32">
                       <table className="w-full min-w-[700px] border-collapse">
                         <thead>

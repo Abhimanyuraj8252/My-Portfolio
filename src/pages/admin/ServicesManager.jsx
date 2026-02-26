@@ -205,7 +205,10 @@ const ServiceModal = ({ service, onClose, onSaved }) => {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
-      <div className="relative bg-[#12141f] border border-white/10 rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto shadow-2xl">
+      <div
+        className="relative bg-[#12141f] border border-white/10 rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto shadow-2xl"
+        data-lenis-prevent
+      >
         {/* Header */}
         <div className="sticky top-0 z-10 flex items-center justify-between px-6 pt-6 pb-4 bg-[#12141f] border-b border-white/8">
           <div>

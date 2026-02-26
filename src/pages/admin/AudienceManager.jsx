@@ -169,7 +169,7 @@ const AudienceManager = () => {
                             </div>
 
                             {/* Table */}
-                            <div className="bg-[#1a1d2e] border border-[#252836] rounded-xl overflow-hidden shadow-xl">
+                            <div className="bg-[#1a1d2e] border border-[#252836] rounded-xl overflow-hidden shadow-xl" data-lenis-prevent>
                                 <table className="w-full text-left border-collapse">
                                     <thead className="bg-[#161822]">
                                         <tr>

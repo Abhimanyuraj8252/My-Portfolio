@@ -539,7 +539,7 @@ const Dashboard = () => {
                             </div>
                             <button onClick={() => setSelectedContact(null)} className="p-2 text-white/30 hover:text-white hover:bg-[#252836] rounded-lg transition-all"><X size={16} /></button>
                         </div>
-                        <div className="flex-1 overflow-y-auto p-5 space-y-3">
+                        <div className="flex-1 overflow-y-auto p-5 space-y-3" data-lenis-prevent>
                             <div className="grid grid-cols-2 gap-3">
                                 {[{ l: 'Email', v: selectedContact.email }, { l: 'Phone', v: selectedContact.mobile || 'N/A' }, selectedContact.subject && { l: 'Service', v: selectedContact.subject }, selectedContact.budget && { l: 'Budget', v: selectedContact.budget }].filter(Boolean).map(x => (
                                     <div key={x.l} className="bg-[#252836] rounded-xl p-3">
