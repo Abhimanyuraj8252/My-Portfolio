@@ -14,6 +14,44 @@ const PORT = process.env.PORT || 5000;
 app.use(cors());
 app.use(express.json());
 
+// ─── Real-time session tracking (in-memory) ───────────────────────────────────
+// ip -> lastSeen timestamp (ms). Used to compute "active users right now".
+const activeSessions = new Map();
+const SESSION_TIMEOUT = 15 * 60 * 1000; // 15 minutes
+
+// ip -> Set of date strings already counted as unique for that day
+const dailyUniqueIPs = new Map();
+
+function pruneActiveSessions() {
+    const cutoff = Date.now() - SESSION_TIMEOUT;
+    for (const [ip, ts] of activeSessions.entries()) {
+        if (ts < cutoff) activeSessions.delete(ip);
+    }
+}
+
+function getClientIP(req) {
+    const fwd = req.headers['x-forwarded-for'];
+    if (fwd) return fwd.split(',')[0].trim();
+    return req.socket?.remoteAddress || '127.0.0.1';
+}
+
+function getDeviceType(ua = '') {
+    if (/tablet|ipad|playbook|silk/i.test(ua)) return 'Tablet';
+    if (/mobile|android|iphone|ipod|blackberry|windows phone|opera mini/i.test(ua)) return 'Mobile';
+    return 'Desktop';
+}
+
+const regionNames = new Intl.DisplayNames(['en'], { type: 'region' });
+function resolveCountry(req) {
+    // Vercel injects x-vercel-ip-country, Cloudflare injects cf-ipcountry
+    const code = req.headers['x-vercel-ip-country'] || req.headers['cf-ipcountry'];
+    if (code && code !== 'XX') {
+        try { return regionNames.of(code) || code; } catch { return code; }
+    }
+    return null; // unknown — don't store garbage
+}
+// ─────────────────────────────────────────────────────────────────────────────
+
 // Middleware to verify JWT
 const authMiddleware = (req, res, next) => {
     const token = req.header('Authorization')?.replace('Bearer ', '');
@@ -652,7 +690,7 @@ app.get('/api/invoices/:id', authMiddleware, async (req, res) => {
 
 app.post('/api/invoices', authMiddleware, async (req, res) => {
     try {
-        const { invoiceNumber, clientName, clientEmail, items, totalAmount, status, date, dueDate } = req.body;
+        const { invoiceNumber, clientName, clientEmail, items, totalAmount, status, date, dueDate, metadata } = req.body;
         const invoice = await prisma.invoice.create({
             data: {
                 invoiceNumber,
@@ -663,6 +701,7 @@ app.post('/api/invoices', authMiddleware, async (req, res) => {
                 status: status || 'Pending',
                 date: date ? new Date(date) : new Date(),
                 dueDate: new Date(dueDate),
+                metadata: metadata || {},
             }
         });
         res.status(201).json(invoice);
@@ -673,7 +712,7 @@ app.post('/api/invoices', authMiddleware, async (req, res) => {
 
 app.put('/api/invoices/:id', authMiddleware, async (req, res) => {
     try {
-        const { clientName, clientEmail, items, totalAmount, status, dueDate } = req.body;
+        const { clientName, clientEmail, items, totalAmount, status, dueDate, metadata } = req.body;
         const data = {};
         if (clientName !== undefined) data.clientName = clientName;
         if (clientEmail !== undefined) data.clientEmail = clientEmail;
@@ -681,6 +720,7 @@ app.put('/api/invoices/:id', authMiddleware, async (req, res) => {
         if (totalAmount !== undefined) data.totalAmount = parseFloat(totalAmount);
         if (status !== undefined) data.status = status;
         if (dueDate !== undefined) data.dueDate = new Date(dueDate);
+        if (metadata !== undefined) data.metadata = metadata;
         const invoice = await prisma.invoice.update({ where: { id: req.params.id }, data });
         res.json(invoice);
     } catch (error) {
@@ -698,62 +738,60 @@ app.delete('/api/invoices/:id', authMiddleware, async (req, res) => {
 });
 
 // --- ANALYTICS ROUTES ---
+
+// Real-time active user count (no auth needed for lightweight polling)
+app.get('/api/analytics/active', authMiddleware, (req, res) => {
+    pruneActiveSessions();
+    res.json({ activeUsers: activeSessions.size });
+});
+
 app.get('/api/analytics', authMiddleware, async (req, res) => {
     try {
-        // Fetch last 30 days of data (placeholder logic for simplicity)
-        const thirtyDaysAgo = new Date();
-        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+        pruneActiveSessions();
 
-        let traffic = await prisma.analyticsData.findMany({
-            where: { date: { gte: thirtyDaysAgo } },
+        const days = parseInt(req.query.days) || 30;
+        const since = new Date();
+        since.setDate(since.getDate() - days);
+        since.setHours(0, 0, 0, 0);
+
+        // ONLY real data — no mock padding
+        const traffic = await prisma.analyticsData.findMany({
+            where: { date: { gte: since } },
             orderBy: { date: 'asc' }
         });
 
-        // Initialize empty mock data array
-        let mockData = [];
+        // Aggregate device breakdown from stored JSON
+        const deviceCounts = { Mobile: 0, Desktop: 0, Tablet: 0 };
+        const countryCounts = {};
 
-        // If we don't have 30 days of data, pad the beginning with mock data to keep the chart full
-        if (traffic.length < 30) {
-            const existingDates = traffic.map(t => new Date(t.date).toDateString());
-            for (let i = 30; i >= 0; i--) {
-                const d = new Date();
-                d.setDate(d.getDate() - i);
-                if (!existingDates.includes(d.toDateString())) {
-                    mockData.push({
-                        date: d,
-                        views: Math.floor(Math.random() * 50) + 10, // lowered fake numbers so real spikes are visible
-                        uniqueVisitors: Math.floor(Math.random() * 30) + 5,
-                    });
+        for (const record of traffic) {
+            const dt = record.deviceType || {};
+            if (dt.Mobile)   deviceCounts.Mobile   += dt.Mobile;
+            if (dt.Desktop)  deviceCounts.Desktop  += dt.Desktop;
+            if (dt.Tablet)   deviceCounts.Tablet   += dt.Tablet;
+            if (dt.countries) {
+                for (const [country, n] of Object.entries(dt.countries)) {
+                    countryCounts[country] = (countryCounts[country] || 0) + n;
                 }
             }
         }
 
-        // Combine mock data (oldest) with real DB traffic (newest) and sort by date
-        traffic = [...mockData, ...traffic].sort((a, b) => new Date(a.date) - new Date(b.date));
+        const deviceData = Object.entries(deviceCounts)
+            .filter(([, v]) => v > 0)
+            .map(([name, value]) => ({ name, value }));
 
-        // Aggregate device data globally or from recent records
-        const deviceData = [
-            { name: 'Mobile', value: 400 },
-            { name: 'Desktop', value: 300 },
-            { name: 'Tablet', value: 300 },
-        ];
-
-        const geoData = [
-            { name: 'United States', value: 35 },
-            { name: 'India', value: 25 },
-            { name: 'United Kingdom', value: 15 },
-            { name: 'Germany', value: 10 },
-            { name: 'Canada', value: 15 },
-        ];
-
-        // Simulate real-time active users
-        const activeUsers = Math.floor(Math.random() * 50) + 10;
+        const geoData = Object.entries(countryCounts)
+            .sort((a, b) => b[1] - a[1])
+            .slice(0, 10)
+            .map(([name, value]) => ({ name, value }));
 
         res.json({
             traffic,
             deviceData,
             geoData,
-            activeUsers
+            activeUsers: activeSessions.size,
+            totalViews: traffic.reduce((s, r) => s + r.views, 0),
+            totalUnique: traffic.reduce((s, r) => s + r.uniqueVisitors, 0),
         });
     } catch (error) {
         res.status(500).json({ error: error.message });
@@ -762,100 +800,77 @@ app.get('/api/analytics', authMiddleware, async (req, res) => {
 
 // --- TRACKING ENDPOINT (PUBLIC) ---
 app.post('/api/track/view', async (req, res) => {
+    // Always respond immediately — never block the user's page load
+    res.status(200).json({ success: true });
+
     try {
-        // We track daily generic views
+        const ip = getClientIP(req);
+        const ua = req.headers['user-agent'] || '';
+        const device = getDeviceType(ua);
+        const country = resolveCountry(req); // null in local dev
+
+        // ── Update active sessions ──
+        activeSessions.set(ip, Date.now());
+
+        // ── Unique visitor check for today ──
         const today = new Date();
         today.setHours(0, 0, 0, 0);
+        const dateKey = today.toISOString().slice(0, 10);
 
-        let record = await prisma.analyticsData.findUnique({
-            where: { date: today }
-        });
+        if (!dailyUniqueIPs.has(dateKey)) {
+            // Prune old date keys (keep only last 2 days in memory)
+            dailyUniqueIPs.clear();
+            dailyUniqueIPs.set(dateKey, new Set());
+        }
+        const todayIPs = dailyUniqueIPs.get(dateKey);
+        const isUnique = !todayIPs.has(ip);
+        if (isUnique) todayIPs.add(ip);
 
-        if (record) {
-            record = await prisma.analyticsData.update({
+        // ── Upsert today's record ──
+        const existing = await prisma.analyticsData.findUnique({ where: { date: today } });
+
+        if (existing) {
+            // Merge device + country into stored JSON
+            const dt = (typeof existing.deviceType === 'object' && existing.deviceType !== null)
+                ? { ...existing.deviceType }
+                : {};
+
+            dt[device] = (dt[device] || 0) + 1;
+
+            if (country) {
+                if (!dt.countries) dt.countries = {};
+                dt.countries[country] = (dt.countries[country] || 0) + 1;
+            }
+
+            const topCountry = dt.countries
+                ? Object.entries(dt.countries).sort((a, b) => b[1] - a[1])[0]?.[0] || null
+                : existing.topCountry;
+
+            await prisma.analyticsData.update({
                 where: { date: today },
                 data: {
                     views: { increment: 1 },
-                    // In a real app we'd track IPs/cookies for uniqueVisitors increment, but we'll simulate a 1 in 3 chance of it being unique
-                    uniqueVisitors: Math.random() > 0.66 ? { increment: 1 } : undefined
+                    ...(isUnique ? { uniqueVisitors: { increment: 1 } } : {}),
+                    deviceType: dt,
+                    topCountry,
                 }
             });
         } else {
-            record = await prisma.analyticsData.create({
+            const dt = { [device]: 1 };
+            if (country) dt.countries = { [country]: 1 };
+
+            await prisma.analyticsData.create({
                 data: {
                     date: today,
                     views: 1,
-                    uniqueVisitors: 1
+                    uniqueVisitors: 1,
+                    deviceType: dt,
+                    topCountry: country,
                 }
             });
         }
-        res.status(200).json({ success: true, record });
     } catch (error) {
-        // Fail silently so we don't break the user's page load
-        console.error("Tracking Error:", error);
-        res.status(200).json({ success: false });
-    }
-});
-
-// --- SERVICES ROUTES ---
-app.get('/api/services', async (req, res) => {
-    try {
-        const services = await prisma.service.findMany({
-            orderBy: { priorityOrder: 'desc' }
-        });
-        res.json(services);
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
-});
-
-app.post('/api/services', authMiddleware, async (req, res) => {
-    try {
-        const { title, description, price, features, deliveryTime, icon, status, priorityOrder } = req.body;
-        const service = await prisma.service.create({
-            data: { title, description, price, features, deliveryTime, icon, status, priorityOrder }
-        });
-
-        await prisma.systemLog.create({
-            data: { action: "Created Service", details: `Added package: ${title}` }
-        });
-
-        res.status(201).json(service);
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
-});
-
-app.put('/api/services/:id', authMiddleware, async (req, res) => {
-    try {
-        const { title, description, price, features, deliveryTime, icon, status, priorityOrder } = req.body;
-        const service = await prisma.service.update({
-            where: { id: req.params.id },
-            data: { title, description, price, features, deliveryTime, icon, status, priorityOrder }
-        });
-
-        await prisma.systemLog.create({
-            data: { action: "Updated Service", details: `Modified package: ${title}` }
-        });
-
-        res.json(service);
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
-});
-
-app.delete('/api/services/:id', authMiddleware, async (req, res) => {
-    try {
-        const svc = await prisma.service.findUnique({ where: { id: req.params.id } });
-        await prisma.service.delete({ where: { id: req.params.id } });
-
-        await prisma.systemLog.create({
-            data: { action: "Deleted Service", details: `Removed package: ${svc?.title || req.params.id}` }
-        });
-
-        res.json({ message: 'Service deleted successfully' });
-    } catch (error) {
-        res.status(500).json({ error: error.message });
+        console.error('Tracking Error:', error.message);
     }
 });
 
