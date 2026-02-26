@@ -139,48 +139,54 @@ const Experience = () => {
     }
 
     return (
-        <>
-            <motion.div variants={textVariant()}>
-                <p className={`${styles.sectionSubText} text-center`}>
-                    What I have done so far
-                </p>
-                <h2 className={`${styles.sectionHeadText} text-center`}>
-                    Work Experience.
-                </h2>
-            </motion.div>
+        <section className="relative overflow-hidden">
+            {/* Ambient Background Glows */}
+            <div className="fixed top-[-10%] left-[-10%] w-[40vw] h-[40vw] bg-indigo-500/5 rounded-full blur-[120px] pointer-events-none z-0" />
+            <div className="fixed bottom-[-10%] right-[-10%] w-[40vw] h-[40vw] bg-cyan-500/5 rounded-full blur-[120px] pointer-events-none z-0" />
 
-            {/* Timeline wrapper */}
-            <div className="mt-12 sm:mt-16 relative">
-                {/* Vertical gradient line (desktop only) */}
-                <div className="hidden sm:block absolute left-[27px] top-4 bottom-4 w-[2px] bg-gradient-to-b from-violet-600 via-cyan-500/40 to-transparent rounded-full pointer-events-none" />
+            <div className="relative z-10">
+                <motion.div variants={textVariant()}>
+                    <p className={`${styles.sectionSubText} text-center`}>
+                        What I have done so far
+                    </p>
+                    <h2 className={`${styles.sectionHeadText} text-center`}>
+                        Work Experience.
+                    </h2>
+                </motion.div>
 
-                {/* Horizontal connector dots (desktop) */}
-                <div className="flex flex-col gap-5 sm:gap-6 sm:pl-14">
-                    {experiences.map((experience, index) => {
-                        const gradient = ICON_GRADIENTS[index % ICON_GRADIENTS.length];
-                        return (
-                            <div key={`exp-outer-${index}`} className="relative">
-                                {/* Left dot on timeline */}
-                                <motion.div
-                                    className={`hidden sm:flex absolute -left-[46px] top-7 w-3 h-3 rounded-full bg-gradient-to-r ${gradient} shadow-[0_0_10px_rgba(139,92,246,0.8)] z-10 items-center justify-center`}
-                                    initial={{ scale: 0 }}
-                                    whileInView={{ scale: 1 }}
-                                    viewport={{ once: true }}
-                                    transition={{ delay: index * 0.15, type: "spring", stiffness: 300 }}
-                                >
-                                    <div className="w-1.5 h-1.5 rounded-full bg-white/80" />
-                                </motion.div>
+                {/* Timeline wrapper */}
+                <div className="mt-12 sm:mt-16 relative">
+                    {/* Vertical gradient line (desktop only) */}
+                    <div className="hidden sm:block absolute left-[27px] top-4 bottom-4 w-[2px] bg-gradient-to-b from-violet-600 via-cyan-500/40 to-transparent rounded-full pointer-events-none" />
 
-                                <ExperienceCard
-                                    experience={experience}
-                                    index={index}
-                                />
-                            </div>
-                        );
-                    })}
+                    {/* Horizontal connector dots (desktop) */}
+                    <div className="flex flex-col gap-5 sm:gap-6 sm:pl-14">
+                        {experiences.map((experience, index) => {
+                            const gradient = ICON_GRADIENTS[index % ICON_GRADIENTS.length];
+                            return (
+                                <div key={`exp-outer-${index}`} className="relative">
+                                    {/* Left dot on timeline */}
+                                    <motion.div
+                                        className={`hidden sm:flex absolute -left-[46px] top-7 w-3 h-3 rounded-full bg-gradient-to-r ${gradient} shadow-[0_0_10px_rgba(139,92,246,0.8)] z-10 items-center justify-center`}
+                                        initial={{ scale: 0 }}
+                                        whileInView={{ scale: 1 }}
+                                        viewport={{ once: true }}
+                                        transition={{ delay: index * 0.15, type: "spring", stiffness: 300 }}
+                                    >
+                                        <div className="w-1.5 h-1.5 rounded-full bg-white/80" />
+                                    </motion.div>
+
+                                    <ExperienceCard
+                                        experience={experience}
+                                        index={index}
+                                    />
+                                </div>
+                            );
+                        })}
+                    </div>
                 </div>
             </div>
-        </>
+        </section>
     );
 };
 

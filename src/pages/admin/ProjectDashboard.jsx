@@ -161,10 +161,14 @@ const ProjectDashboard = () => {
         <div className="flex min-h-screen bg-[#050505]">
             <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
-            <div className="flex-1 md:ml-64 min-h-screen">
+            <div className="flex-1 md:ml-64 min-h-screen relative overflow-hidden">
                 <Helmet>
                     <title>Project Management | Admin</title>
                 </Helmet>
+
+                {/* Ambient Background Glows */}
+                <div className="fixed top-[-10%] left-[-10%] w-[40vw] h-[40vw] bg-indigo-500/10 rounded-full blur-[120px] pointer-events-none" />
+                <div className="fixed bottom-[-10%] right-[-10%] w-[40vw] h-[40vw] bg-cyan-500/10 rounded-full blur-[120px] pointer-events-none" />
 
                 {/* Mobile Header */}
                 <div className="md:hidden flex items-center gap-3 px-4 py-3 bg-[#161822] border-b border-[#252836] sticky top-0 z-30">

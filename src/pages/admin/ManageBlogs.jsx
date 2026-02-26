@@ -308,9 +308,13 @@ const ManageBlogs = () => {
                 </div>
 
                 {/* Content Area */}
-                <div className="p-4 md:p-6 xl:p-8 text-white">
+                <div className="p-4 md:p-6 xl:p-8 text-white relative">
+                    {/* Ambient Background Glows */}
+                    <div className="fixed top-[-10%] left-[-10%] w-[40vw] h-[40vw] bg-indigo-500/10 rounded-full blur-[120px] pointer-events-none" />
+                    <div className="fixed bottom-[-10%] right-[-10%] w-[40vw] h-[40vw] bg-cyan-500/10 rounded-full blur-[120px] pointer-events-none" />
+
                     {/* Desktop Header */}
-                    <div className="hidden md:flex justify-between items-center mb-6">
+                    <div className="hidden md:flex justify-between items-center mb-6 relative z-10">
                         <div>
                             <h1 className="text-2xl font-bold tracking-tight text-white/90">{getPageTitle()}</h1>
                             {view === 'list' && <p className="text-white/30 text-xs mt-0.5">{blogs.length} total · {blogs.filter(b => b.published).length} published</p>}

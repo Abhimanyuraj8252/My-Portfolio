@@ -17,6 +17,14 @@ const CategoryGlowMap = {
     Other: "from-[#8E2DE2] to-[#4A00E0]", // Deep Purple
 };
 
+const CategoryColorMap = {
+    Frontend: "#4facfe",
+    Backend: "#43e97b",
+    Language: "#fdfc47",
+    Tools: "#ffb199",
+    Other: "#a78bfa",
+};
+
 const FallbackIconMap = {
     Frontend: Globe,
     Backend: Cpu,
@@ -27,6 +35,7 @@ const FallbackIconMap = {
 
 const TechCard = ({ skill, index }) => {
     const glowGradient = CategoryGlowMap[skill.category] || CategoryGlowMap.Other;
+    const accentColor = skill.color || CategoryColorMap[skill.category] || CategoryColorMap.Other;
     const FallbackIcon = FallbackIconMap[skill.category] || Code2;
     const [imageError, setImageError] = useState(false);
     const [isHovered, setIsHovered] = useState(false);
@@ -76,7 +85,7 @@ const TechCard = ({ skill, index }) => {
                 {/* 1. Ambient Back Glow (Intensifies on hover) */}
                 <div
                     className={`absolute inset-0 rounded-3xl opacity-0 group-hover:opacity-15 blur-xl transition-opacity duration-500`}
-                    style={{ background: skill.color ? `linear-gradient(to top right, ${skill.color}, transparent)` : `linear-gradient(to top right, var(--tw-gradient-stops))` }}
+                    style={{ background: `linear-gradient(to top right, ${accentColor}, transparent)` }}
                 />
 
                 {/* 2. Glass Edge Highlight (Top left) */}
@@ -94,7 +103,7 @@ const TechCard = ({ skill, index }) => {
                     />
                     <defs>
                         <linearGradient id={`glowGradient-${skill.id}`} x1="0%" y1="0%" x2="100%" y2="100%">
-                            <stop offset="0%" stopColor={skill.color || "rgba(255,255,255,0.8)"} />
+                            <stop offset="0%" stopColor={accentColor} />
                             <stop offset="100%" stopColor="rgba(255,255,255,0)" />
                         </linearGradient>
                     </defs>
@@ -108,7 +117,7 @@ const TechCard = ({ skill, index }) => {
                     {/* Pulsing Aura Behind Icon */}
                     <div 
                         className={`absolute inset-0 rounded-full blur-xl opacity-0 group-hover:opacity-40 animate-pulse transition-opacity duration-500`} 
-                        style={{ background: skill.color ? `linear-gradient(to top right, ${skill.color}, transparent)` : `linear-gradient(to top right, var(--tw-gradient-stops))` }}
+                        style={{ background: `linear-gradient(to top right, ${accentColor}, transparent)` }}
                     />
 
                     {hasValidImageSource && !imageError ? (
@@ -122,7 +131,7 @@ const TechCard = ({ skill, index }) => {
                         <FallbackIcon
                             size={40}
                             className="text-white/30 group-hover:text-white filter group-hover:drop-shadow-[0_0_15px_rgba(255,255,255,0.8)] transition-all duration-300"
-                            style={{ color: isHovered && skill.color ? skill.color : undefined }}
+                            style={{ color: isHovered ? accentColor : undefined }}
                         />
                     )}
                 </div>
@@ -140,9 +149,9 @@ const TechCard = ({ skill, index }) => {
                                 exit={{ opacity: 0, y: 5, scale: 0.9 }}
                                 className="absolute -top-6 bg-black/80 border border-white/20 backdrop-blur-md px-3 py-1 rounded-full whitespace-nowrap"
                             >
-                                <span 
-                                    className={`text-[9px] uppercase tracking-[0.3em] bg-clip-text text-transparent font-bold`}
-                                    style={{ backgroundImage: skill.color ? `linear-gradient(to right, ${skill.color}, #ffffff)` : `linear-gradient(to right, var(--tw-gradient-stops))` }}
+                                <span
+                                    className="text-[9px] uppercase tracking-[0.3em] font-bold"
+                                    style={{ color: accentColor, textShadow: `0 0 8px ${accentColor}55` }}
                                 >
                                     {skill.category}
                                 </span>
@@ -158,8 +167,8 @@ const TechCard = ({ skill, index }) => {
                     <div 
                         className={`w-1.5 h-1.5 rounded-full mt-2 opacity-30 group-hover:opacity-100 transition-all duration-500`} 
                         style={{ 
-                            background: skill.color || 'white',
-                            boxShadow: isHovered && skill.color ? `0 0 10px ${skill.color}` : 'none'
+                            background: accentColor,
+                            boxShadow: isHovered ? `0 0 10px ${accentColor}` : 'none'
                         }}
                     />
                 </div>

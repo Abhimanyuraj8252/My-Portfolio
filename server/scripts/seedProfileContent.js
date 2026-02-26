@@ -37,7 +37,7 @@ const experienceSeed = [
     startDate: new Date('2025-09-01T00:00:00.000Z'),
     endDate: null,
     currentJob: true,
-    logoUrl: 'https://placehold.co/100x100?text=Creator',
+    logoUrl: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/react/react-original.svg',
     description:
       'Designed and developed custom websites for local clients, enhancing their brand visibility.\nBuilt Android media player apps and real-time tracking systems with focus on clean, scalable code.',
     order: 0,
@@ -48,7 +48,7 @@ const experienceSeed = [
     startDate: new Date('2023-09-01T00:00:00.000Z'),
     endDate: new Date('2026-08-31T00:00:00.000Z'),
     currentJob: false,
-    logoUrl: 'https://placehold.co/100x100?text=Backend',
+    logoUrl: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/cplusplus/cplusplus-original.svg',
     description:
       'Pursuing Diploma in Computer Science and Engineering with coursework in Data Structures, Algorithms, DBMS and Operating Systems.',
     order: 1,
@@ -65,6 +65,12 @@ const experienceSeed = [
     order: 2,
   },
 ];
+
+const experienceLogoMap = {
+  'freelance web developer': 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/react/react-original.svg',
+  'diploma in computer science & engineering': 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/cplusplus/cplusplus-original.svg',
+  'programming with python certification': 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/python/python-original.svg',
+};
 
 async function backfillSkillIcons() {
   const skills = await prisma.skill.findMany();
@@ -95,12 +101,36 @@ async function seedExperiencesIfEmpty() {
   return experienceSeed.length;
 }
 
+async function backfillExperienceLogos() {
+  const rows = await prisma.experience.findMany();
+  let updated = 0;
+
+  for (const row of rows) {
+    const key = String(row.role || '').toLowerCase();
+    const mapped = experienceLogoMap[key];
+    if (!mapped) continue;
+
+    const hasPlaceholder = !row.logoUrl || row.logoUrl.includes('placehold.co');
+    if (!hasPlaceholder && row.logoUrl === mapped) continue;
+
+    await prisma.experience.update({
+      where: { id: row.id },
+      data: { logoUrl: mapped },
+    });
+    updated += 1;
+  }
+
+  return updated;
+}
+
 async function main() {
   const updatedSkills = await backfillSkillIcons();
   const insertedExperience = await seedExperiencesIfEmpty();
+  const updatedExperienceLogos = await backfillExperienceLogos();
 
   console.log(`Backfilled skill icons: ${updatedSkills}`);
   console.log(`Inserted experiences: ${insertedExperience}`);
+  console.log(`Backfilled experience logos: ${updatedExperienceLogos}`);
 }
 
 main()

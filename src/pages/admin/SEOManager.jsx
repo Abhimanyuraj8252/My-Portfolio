@@ -216,6 +216,9 @@ const SEOManager = () => {
       <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
       <div className="md:ml-64 flex flex-col h-screen overflow-hidden relative">
+        {/* Ambient Background Glows */}
+        <div className="fixed top-[-10%] left-[-10%] w-[40vw] h-[40vw] bg-indigo-500/10 rounded-full blur-[120px] pointer-events-none" />
+        <div className="fixed bottom-[-10%] right-[-10%] w-[40vw] h-[40vw] bg-cyan-500/10 rounded-full blur-[120px] pointer-events-none" />
         {/* Mobile Header */}
         <div className="md:hidden flex items-center justify-between p-4 bg-black/40 backdrop-blur-md border-b border-white/10 z-20">
           <h1 className="text-xl font-bold text-white">SEO Manager</h1>

@@ -432,7 +432,10 @@ const ServicesManager = () => {
           <h1 className="text-white font-bold flex-1">Services</h1>
         </div>
 
-        <div className="p-4 md:p-6 xl:p-8">
+        <div className="p-4 md:p-6 xl:p-8 relative">
+          {/* Ambient Background Glows */}
+          <div className="fixed top-[-10%] left-[-10%] w-[40vw] h-[40vw] bg-indigo-500/10 rounded-full blur-[120px] pointer-events-none" />
+          <div className="fixed bottom-[-10%] right-[-10%] w-[40vw] h-[40vw] bg-cyan-500/10 rounded-full blur-[120px] pointer-events-none" />
           {/* Desktop Header */}
           <div className="hidden md:flex items-start justify-between mb-8">
             <div>
