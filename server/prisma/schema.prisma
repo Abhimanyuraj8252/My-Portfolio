@@ -77,3 +77,32 @@ model SEOMetadata {
   structuredData  Json?
   lastUpdated     DateTime @default(now()) @updatedAt
 }
+
+model Project {
+  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  title         String
+  slug          String   @unique
+  description   String
+  thumbnailUrl  String
+  galleryImages String[] @default([])
+  techStack     String[] @default([])
+  liveUrl       String?
+  repoUrl       String?
+  category      String   // Enum-like: Web, App, AI, Design
+  status        String   // Enum-like: Completed, InProgress, Maintenance
+  isFeatured    Boolean  @default(false)
+  priorityOrder Int      @default(0)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model Skill {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name        String
+  iconName    String
+  category    String   // e.g., "Frontend", "Backend", "Tools", "Language"
+  proficiency Int      @default(0) // 0-100
+  isFeatured  Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}

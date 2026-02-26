@@ -23,6 +23,8 @@ const ManageBlogs = lazy(() => import("./pages/admin/ManageBlogs"));
 const ManageTestimonials = lazy(() => import("./pages/admin/ManageTestimonials"));
 const ManageContacts = lazy(() => import("./pages/admin/ManageContacts"));
 const SEOManager = lazy(() => import("./pages/admin/SEOManager"));
+const ProjectDashboard = lazy(() => import("./pages/admin/ProjectDashboard"));
+const TechStackDashboard = lazy(() => import("./pages/admin/TechStackDashboard"));
 const Blogs = lazy(() => import("./pages/Blogs"));
 const BlogDetails = lazy(() => import("./pages/BlogDetails"));
 const ProtectedRoute = lazy(() => import("./components/admin/ProtectedRoute"));
@@ -95,6 +97,8 @@ const App = () => {
                       <Route path="/x7k9m2p4q" element={<ProtectedRoute />}>
                         <Route index element={<Dashboard />} />
                         <Route path="dashboard" element={<Dashboard />} />
+                        <Route path="projects" element={<ProjectDashboard />} />
+                        <Route path="skills" element={<TechStackDashboard />} />
                         <Route path="blogs" element={<ManageBlogs />} />
                         <Route path="testimonials" element={<ManageTestimonials />} />
                         <Route path="contacts" element={<ManageContacts />} />
@@ -110,7 +114,7 @@ const App = () => {
           </SmoothScroll>
         </BrowserRouter>
       </AuthProvider>
-    </HelmetProvider>
+    </HelmetProvider >
   );
 };
 

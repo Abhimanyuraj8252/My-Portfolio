@@ -111,7 +111,7 @@ const ManageTestimonials = () => {
                 body: JSON.stringify({
                     name: editForm.name,
                     message: editForm.message,
-                    // rating: editForm.rating, // rating missing from schema, ignoring for now or update schema later
+                    rating: parseInt(editForm.rating, 10),
                     isApproved: editForm.approved
                 })
             });

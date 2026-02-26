@@ -1,7 +1,6 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import { m as motion, useMotionValue, useSpring, useTransform } from "framer-motion";
 import { styles } from "../styles";
-import { projects } from "../constants";
 import { fadeIn, textVariant } from "../utils/motion";
 import { SectionWrapper } from "../hoc";
 import { Github, Globe2 } from "lucide-react";
@@ -12,6 +11,13 @@ const categories = [
     { id: "web", label: "Web" },
     { id: "mobile", label: "Mobile" },
     { id: "tools", label: "Tools" },
+];
+
+const TAG_COLORS = [
+    "blue-text-gradient",
+    "green-text-gradient",
+    "pink-text-gradient",
+    "orange-text-gradient"
 ];
 
 const ProjectCard = ({
@@ -103,6 +109,25 @@ const ProjectCard = ({
 
 const Works = () => {
     const [filter, setFilter] = useState("all");
+    const [dbProjects, setDbProjects] = useState([]);
+    const [isLoading, setIsLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchProjects = async () => {
+            try {
+                const res = await fetch("http://localhost:5000/api/projects");
+                if (res.ok) {
+                    const data = await res.json();
+                    setDbProjects(data);
+                }
+            } catch (err) {
+                console.error("Failed to fetch projects:", err);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+        fetchProjects();
+    }, []);
 
     // Velocity Skew Logic
     const scrollVelocity = useMotionValue(0);
@@ -117,18 +142,35 @@ const Works = () => {
         scrollVelocity.set(velocity);
     });
 
+    // Map DB projects back to frontend format
+    const mappedProjects = useMemo(() => {
+        return dbProjects.map(p => ({
+            name: p.title,
+            description: p.description,
+            category: p.category.toLowerCase(),
+            featured: p.isFeatured,
+            tags: (p.techStack || []).map((tech, i) => ({
+                name: tech,
+                color: TAG_COLORS[i % TAG_COLORS.length]
+            })),
+            image: p.thumbnailUrl,
+            source_code_link: p.repoUrl,
+            live_link: p.liveUrl
+        }));
+    }, [dbProjects]);
+
     const categoryCounts = useMemo(() => {
-        const counts = projects.reduce((acc, project) => {
+        const counts = mappedProjects.reduce((acc, project) => {
             acc[project.category] = (acc[project.category] || 0) + 1;
             return acc;
         }, {});
-        counts.all = projects.length;
+        counts.all = mappedProjects.length;
         return counts;
-    }, []);
+    }, [mappedProjects]);
 
     const filteredProjects = filter === "all"
-        ? projects
-        : projects.filter((project) => project.category === filter);
+        ? mappedProjects
+        : mappedProjects.filter((project) => project.category === filter);
 
     return (
         <>

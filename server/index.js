@@ -431,6 +431,96 @@ app.delete('/api/seo/:id', authMiddleware, async (req, res) => {
     }
 });
 
+// --- PROJECT ROUTES ---
+app.get('/api/projects', async (req, res) => {
+    try {
+        const projects = await prisma.project.findMany({
+            orderBy: [{ priorityOrder: 'desc' }, { createdAt: 'desc' }],
+        });
+        res.json(projects);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+app.post('/api/projects', authMiddleware, async (req, res) => {
+    try {
+        const data = req.body;
+        const project = await prisma.project.create({ data });
+        res.status(201).json(project);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+app.put('/api/projects/:id', authMiddleware, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const data = req.body;
+        const project = await prisma.project.update({
+            where: { id },
+            data,
+        });
+        res.json(project);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+app.delete('/api/projects/:id', authMiddleware, async (req, res) => {
+    try {
+        await prisma.project.delete({ where: { id: req.params.id } });
+        res.json({ message: 'Project deleted successfully' });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// --- SKILL ROUTES ---
+app.get('/api/skills', async (req, res) => {
+    try {
+        const skills = await prisma.skill.findMany({
+            orderBy: { proficiency: 'desc' },
+        });
+        res.json(skills);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+app.post('/api/skills', authMiddleware, async (req, res) => {
+    try {
+        const data = req.body;
+        const skill = await prisma.skill.create({ data });
+        res.status(201).json(skill);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+app.put('/api/skills/:id', authMiddleware, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const data = req.body;
+        const skill = await prisma.skill.update({
+            where: { id },
+            data,
+        });
+        res.json(skill);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+app.delete('/api/skills/:id', authMiddleware, async (req, res) => {
+    try {
+        await prisma.skill.delete({ where: { id: req.params.id } });
+        res.json({ message: 'Skill deleted successfully' });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
 if (process.env.NODE_ENV !== 'production') {
     app.listen(PORT, () => {
         console.log(`Server running on http://localhost:${PORT}`);

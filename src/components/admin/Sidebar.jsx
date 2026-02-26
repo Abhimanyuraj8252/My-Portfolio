@@ -22,6 +22,8 @@ const Sidebar = ({ isOpen, onClose }) => {
 
     const navItems = [
         { path: "/x7k9m2p4q/dashboard", icon: LayoutDashboard, label: "Dashboard" },
+        { path: "/x7k9m2p4q/projects", icon: FileText, label: "Projects" },
+        { path: "/x7k9m2p4q/skills", icon: Globe, label: "Tech Stack" },
         { path: "/x7k9m2p4q/blogs", icon: FileText, label: "Blogs" },
         { path: "/x7k9m2p4q/testimonials", icon: MessageSquare, label: "Testimonials" },
         { path: "/x7k9m2p4q/contacts", icon: Mail, label: "Messages" },
