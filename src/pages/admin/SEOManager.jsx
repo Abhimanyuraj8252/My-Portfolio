@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { Search, ArrowUpDown, Globe, Twitter, Plus, X, Save, RefreshCw, Menu, ChevronLeft, Settings, LayoutTemplate, ChevronDown, FileText, Zap, ShieldCheck } from 'lucide-react';
 import { m as motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
@@ -57,6 +57,15 @@ const SEOManager = () => {
     structuredData: ''
   });
   const [keywordInput, setKeywordInput] = useState('');
+  const structuredDataRef = useRef(null);
+
+  // Auto-resize Structured Data textarea
+  useEffect(() => {
+    if (structuredDataRef.current) {
+      structuredDataRef.current.style.height = 'auto';
+      structuredDataRef.current.style.height = `${structuredDataRef.current.scrollHeight}px`;
+    }
+  }, [formData.structuredData, selectedRecord]);
 
   useEffect(() => {
     fetchRecords();
@@ -667,12 +676,12 @@ const SEOManager = () => {
                               <span className="text-xs text-gray-500">Optional</span>
                             </label>
                             <textarea
+                              ref={structuredDataRef}
                               name="structuredData"
                               value={formData.structuredData}
                               onChange={handleInputChange}
-                              rows={5}
                               placeholder='{\n  "@context": "https://schema.org",\n  "@type": "WebPage"\n}'
-                              className="w-full flex-1 bg-[#0d0d0d] border border-white/10 rounded-lg px-4 py-3 text-xs font-mono text-green-400 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all resize-none custom-scrollbar"
+                              className="w-full bg-[#0d0d0d] border border-white/10 rounded-lg px-4 py-3 text-xs font-mono text-green-400 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all resize-none custom-scrollbar min-h-[120px] max-h-[400px]"
                             />
                           </div>
                         </div>
