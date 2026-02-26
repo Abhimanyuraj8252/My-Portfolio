@@ -629,7 +629,7 @@ app.delete('/api/experience/:id', authMiddleware, async (req, res) => {
 app.put('/api/experience/reorder/bulk', authMiddleware, async (req, res) => {
     try {
         const { items } = req.body; // Array of { id, order }
-        
+
         // Use a transaction to update all orders
         await prisma.$transaction(
             items.map((item) =>
@@ -639,7 +639,7 @@ app.put('/api/experience/reorder/bulk', authMiddleware, async (req, res) => {
                 })
             )
         );
-        
+
         res.json({ message: 'Reordered successfully' });
     } catch (error) {
         res.status(500).json({ error: error.message });
