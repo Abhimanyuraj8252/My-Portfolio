@@ -1,6 +1,7 @@
 import React, { useEffect } from "react";
 import { Link } from "react-router-dom";
 import { styles } from "../styles";
+import PageSEO from "../components/PageSEO";
 
 const RefundPolicy = () => {
     useEffect(() => {
@@ -8,6 +9,12 @@ const RefundPolicy = () => {
     }, []);
 
     return (
+        <>
+        <PageSEO
+            route="/refund-policy"
+            fallbackTitle="Refund Policy | Abhimanyu Raj"
+            fallbackDescription="Refund and cancellation policy for services provided by Abhimanyu Raj."
+        />
         <div className="bg-primary min-h-screen py-24 px-6 sm:px-16">
             <main className="max-w-4xl mx-auto">
                 <Link to="/" className="text-secondary hover:text-white mb-6 inline-block">
@@ -45,6 +52,7 @@ const RefundPolicy = () => {
                 </section>
             </main>
         </div>
+        </>
     );
 };
 

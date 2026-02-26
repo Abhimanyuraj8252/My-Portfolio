@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { m as motion } from "framer-motion";
-import { Helmet } from "react-helmet-async";
+import PageSEO from "../components/PageSEO";
 import { styles } from "../styles";
 import API_BASE_URL from "../config";
 
@@ -179,10 +179,11 @@ const TestimonialsPage = () => {
 
     return (
         <>
-            <Helmet>
-                <title>Testimonials | Abhimanyu Raj - Software Engineer</title>
-                <meta name="description" content="Read what clients say about working with Abhimanyu Raj. Leave your review and share your experience." />
-            </Helmet>
+            <PageSEO
+                route="/testimonials"
+                fallbackTitle="Testimonials | Abhimanyu Raj - Software Engineer"
+                fallbackDescription="Read what clients say about working with Abhimanyu Raj. Leave your review and share your experience."
+            />
 
             <div className="bg-primary min-h-screen">
                 {/* Hero Header */}

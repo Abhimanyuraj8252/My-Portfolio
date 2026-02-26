@@ -4,7 +4,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { LazyMotion, domAnimation } from "framer-motion";
 import { Toaster } from "sonner";
 import { HelmetProvider } from "react-helmet-async";
-import { Navbar, Hero, StarsCanvas, Footer } from "./components"; // Keep critical above fold components eager
+import { Navbar, Hero, StarsCanvas, Footer, PageSEO } from "./components"; // Keep critical above fold components eager
 import SmoothScroll from "./components/SmoothScroll";
 import { AuthProvider } from "./context/AuthContext";
 import ErrorBoundary from "./components/ErrorBoundary";
@@ -67,6 +67,8 @@ const App = () => {
                           path='/'
                           element={
                             <>
+                              {/* Dynamic SEO — reads live data from Admin → SEO Manager */}
+                              <PageSEO route="/" />
                               {/* Navbar must be OUTSIDE any z-indexed wrapper */}
                               <Navbar />
                               <div className='bg-hero-pattern bg-cover bg-no-repeat bg-center'>

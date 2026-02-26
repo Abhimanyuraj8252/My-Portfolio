@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { m as motion } from "framer-motion";
-import { Helmet } from "react-helmet-async";
+import PageSEO from "../components/PageSEO";
 
 import { styles } from "../styles";
 import API_BASE_URL from "../config";
@@ -171,10 +171,11 @@ const Blogs = () => {
 
     return (
         <>
-            <Helmet>
-                <title>Blog | Abhimanyu Raj - Software Engineer</title>
-                <meta name="description" content="Read insights, tutorials, and updates on Web Development, Software Engineering, and Technology." />
-            </Helmet>
+            <PageSEO
+                route="/blog"
+                fallbackTitle="Blog | Abhimanyu Raj - Software Engineer"
+                fallbackDescription="Read insights, tutorials, and updates on Web Development, Software Engineering, and Technology."
+            />
 
             <div className="bg-primary min-h-screen">
                 {/* Hero Header */}

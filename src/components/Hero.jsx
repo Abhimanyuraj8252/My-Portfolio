@@ -2,6 +2,7 @@ import React from "react";
 import { m as motion } from "framer-motion";
 
 import { styles } from "../styles";
+import AvailabilityBadge from "./AvailabilityBadge";
 // Removed 3D Canvas for performance
 // import { ComputersCanvas } from "./canvas";
 
@@ -40,6 +41,9 @@ const Hero = () => {
                             I develop 3D visuals, user <br className='sm:block hidden' />
                             interfaces and web applications.
                         </p>
+
+                        {/* Live availability badge — driven by Admin dashboard */}
+                        <AvailabilityBadge className="mt-5 sm:mt-6" />
 
                         {/* Mobile Profile Image - Above Card */}
                         <div className="w-full lg:hidden flex justify-center mt-6 sm:mt-8 mb-6 sm:mb-8">

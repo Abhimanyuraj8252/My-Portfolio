@@ -6,6 +6,7 @@ import { navLinks } from "../constants";
 import { logo } from "../assets";
 import { Menu, X } from "lucide-react";
 import { useLenis } from "../context/LenisContext";
+import AvailabilityBadge from "./AvailabilityBadge";
 
 // Mobile menu component rendered via portal
 const MobileMenu = ({ toggle, setToggle, active, setActive, handleMobileNavClick, navigate }) => {
@@ -275,6 +276,11 @@ const Navbar = () => {
                             <Link to="/testimonials">Testimonials</Link>
                         </li>
                     </ul>
+
+                    {/* Live availability badge — visible on desktop only */}
+                    <div className="hidden sm:flex items-center ml-4">
+                        <AvailabilityBadge showTooltip={false} />
+                    </div>
 
                     {/* Mobile Menu Button */}
                     <div className='sm:hidden flex flex-1 justify-end items-center'>

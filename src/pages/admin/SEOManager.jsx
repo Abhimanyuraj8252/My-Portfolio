@@ -606,7 +606,7 @@ const SEOManager = () => {
                           </div>
 
                           <div className="flex-1 flex flex-col">
-                            <label className="block text-sm font-medium text-gray-300 mb-1 flex justify-between">
+                            <label className="text-sm font-medium text-gray-300 mb-1 flex justify-between">
                               <span className="flex items-center gap-1"><LayoutTemplate size={14} /> Structured Data (JSON-LD)</span>
                               <span className="text-xs text-gray-500">Optional</span>
                             </label>

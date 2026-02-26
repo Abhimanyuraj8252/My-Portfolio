@@ -1,6 +1,7 @@
 import React, { useEffect } from "react";
 import { Link } from "react-router-dom";
 import { styles } from "../styles";
+import PageSEO from "../components/PageSEO";
 
 const PrivacyPolicy = () => {
     useEffect(() => {
@@ -8,6 +9,12 @@ const PrivacyPolicy = () => {
     }, []);
 
     return (
+        <>
+        <PageSEO
+            route="/privacy-policy"
+            fallbackTitle="Privacy Policy | Abhimanyu Raj"
+            fallbackDescription="Privacy policy for Abhimanyu Raj's portfolio — how we handle your data."
+        />
         <div className="bg-primary min-h-screen py-24 px-6 sm:px-16">
             <main className="max-w-4xl mx-auto">
                 <Link to="/" className="text-secondary hover:text-white mb-6 inline-block">
@@ -56,6 +63,7 @@ const PrivacyPolicy = () => {
                 </section>
             </main>
         </div>
+        </>
     );
 };
 

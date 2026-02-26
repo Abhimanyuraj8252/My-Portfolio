@@ -5,6 +5,7 @@ import { fadeIn, textVariant } from "../utils/motion";
 import { SectionWrapper } from "../hoc";
 import { Github, Globe2 } from "lucide-react";
 import { useLenis } from "../context/LenisContext";
+import API_BASE_URL from "../config";
 
 const categories = [
     { id: "all", label: "All" },
@@ -115,7 +116,7 @@ const Works = () => {
     useEffect(() => {
         const fetchProjects = async () => {
             try {
-                const res = await fetch("http://localhost:5000/api/projects");
+                const res = await fetch(`${API_BASE_URL}/api/projects`);
                 if (res.ok) {
                     const data = await res.json();
                     setDbProjects(data);
