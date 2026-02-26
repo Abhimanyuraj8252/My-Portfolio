@@ -1,9 +1,8 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import Sidebar from "../../components/admin/Sidebar";
 import API_BASE_URL from "../../config";
 
-
-import { Check, Trash2, X, Menu, Pencil, Star } from "lucide-react";
+import { Check, Trash2, X, Menu, Pencil, Star, Search, ArrowUpDown, ChevronDown } from "lucide-react";
 
 const ManageTestimonials = () => {
     const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -11,6 +10,30 @@ const ManageTestimonials = () => {
     const [loading, setLoading] = useState(true);
     const [editingReview, setEditingReview] = useState(null);
     const [editForm, setEditForm] = useState({ name: "", message: "", rating: 5, approved: false });
+    const [tSearch, setTSearch] = useState('');
+    const [tFilter, setTFilter] = useState('all');
+    const [tSort, setTSort] = useState('newest');
+    const [showTSort, setShowTSort] = useState(false);
+
+    const filteredReviews = useMemo(() => {
+        let result = [...reviews];
+        if (tSearch) {
+            const q = tSearch.toLowerCase();
+            result = result.filter(r => r.name.toLowerCase().includes(q) || r.company?.toLowerCase().includes(q) || r.message.toLowerCase().includes(q));
+        }
+        if (tFilter === 'approved') result = result.filter(r => r.isApproved);
+        else if (tFilter === 'pending') result = result.filter(r => !r.isApproved);
+        if (tSort === 'newest') result.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+        else if (tSort === 'oldest') result.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+        else if (tSort === 'rating_high') result.sort((a, b) => (b.rating || 5) - (a.rating || 5));
+        else if (tSort === 'rating_low') result.sort((a, b) => (a.rating || 5) - (b.rating || 5));
+        return result;
+    }, [reviews, tSearch, tFilter, tSort]);
+
+    const avgRating = useMemo(() => {
+        if (reviews.length === 0) return '0.0';
+        return (reviews.reduce((s, r) => s + (r.rating || 5), 0) / reviews.length).toFixed(1);
+    }, [reviews]);
 
     const getHeaders = () => {
         const token = localStorage.getItem('token');
@@ -140,12 +163,12 @@ const ManageTestimonials = () => {
     };
 
     return (
-        <div className="flex bg-primary min-h-screen">
+        <div className="flex min-h-screen bg-[#0f1117]">
             <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
             <div className="flex-1 md:ml-64 min-h-screen">
                 {/* Mobile Header */}
-                <div className="md:hidden flex items-center gap-4 p-4 bg-tertiary sticky top-0 z-30">
+                <div className="md:hidden flex items-center gap-4 p-4 bg-[#161822] border-b border-[#252836] sticky top-0 z-30">
                     <button
                         onClick={() => setSidebarOpen(true)}
                         className="p-2 text-white hover:bg-white/10 rounded-lg transition-colors"
@@ -156,20 +179,63 @@ const ManageTestimonials = () => {
                 </div>
 
                 {/* Content Area */}
-                <div className="p-4 md:p-10 text-white">
+                <div className="p-4 md:p-6 xl:p-8 text-white">
                     {/* Desktop Title */}
-                    <h1 className="hidden md:block text-4xl font-bold mb-8">Manage Testimonials</h1>
+                    <div className="hidden md:flex items-center gap-4 mb-6">
+                        <h1 className="text-3xl font-extrabold text-white">Testimonials</h1>
+                        <span className="bg-gradient-to-r from-amber-500 to-yellow-500 text-white text-xs px-3 py-1.5 rounded-lg flex items-center gap-1 font-bold shadow-md shadow-amber-500/20">
+                            <Star size={12} fill="currentColor" /> {avgRating} avg
+                        </span>
+                    </div>
+
+                    {/* Search + Sort Bar */}
+                    <div className="flex flex-col sm:flex-row gap-3 mb-5">
+                        <div className="relative flex-1">
+                            <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-white/30" />
+                            <input type="text" placeholder="Search by name, company..." value={tSearch} onChange={(e) => setTSearch(e.target.value)}
+                                className="w-full bg-[#1a1d2e] text-white text-sm py-3 pl-11 pr-4 rounded-xl border border-[#252836] focus:border-purple-500/50 outline-none placeholder:text-white/25 transition-all" />
+                        </div>
+                        <div className="relative">
+                            <button onClick={() => setShowTSort(!showTSort)}
+                                className="flex items-center gap-2 bg-[#1a1d2e] border border-[#252836] px-4 py-3 rounded-xl text-sm text-white/50 hover:text-white/80 hover:border-[#353849] transition-all whitespace-nowrap">
+                                <ArrowUpDown size={14} />
+                                {{ newest: 'Newest', oldest: 'Oldest', rating_high: 'Rating ↓', rating_low: 'Rating ↑' }[tSort]}
+                                <ChevronDown size={14} />
+                            </button>
+                            {showTSort && (
+                                <>
+                                    <div className="fixed inset-0 z-30" onClick={() => setShowTSort(false)} />
+                                    <div className="absolute right-0 top-full mt-2 w-48 bg-[#1a1d2e] border border-[#252836] rounded-xl shadow-2xl z-40 py-2">
+                                        {[{ v: 'newest', l: 'Newest First' }, { v: 'oldest', l: 'Oldest First' }, { v: 'rating_high', l: 'Rating High→Low' }, { v: 'rating_low', l: 'Rating Low→High' }].map(o => (
+                                            <button key={o.v} onClick={() => { setTSort(o.v); setShowTSort(false); }}
+                                                className={`w-full text-left px-4 py-2.5 text-sm ${tSort === o.v ? 'text-purple-400 bg-purple-500/10 font-bold' : 'text-white/50 hover:text-white hover:bg-[#252836]'}`}>{o.l}</button>
+                                        ))}
+                                    </div>
+                                </>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* Filter Tabs */}
+                    <div className="flex gap-2 overflow-x-auto pb-1 mb-5">
+                        {[{ v: 'all', l: 'All', c: reviews.length }, { v: 'approved', l: 'Approved', c: reviews.filter(r => r.isApproved).length }, { v: 'pending', l: 'Pending', c: reviews.filter(r => !r.isApproved).length }].map(f => (
+                            <button key={f.v} onClick={() => setTFilter(f.v)}
+                                className={`flex-shrink-0 px-5 py-2.5 rounded-xl text-sm font-bold transition-all ${tFilter === f.v ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white shadow-lg shadow-purple-500/20' : 'bg-[#1a1d2e] text-white/40 border border-[#252836] hover:text-white/70'}`}>
+                                {f.l} <span className="ml-1 opacity-60">({f.c})</span>
+                            </button>
+                        ))}
+                    </div>
 
                     {loading ? (
-                        <p>Loading...</p>
-                    ) : reviews.length === 0 ? (
-                        <p className="text-secondary text-center mt-10">No reviews found.</p>
+                        <div className="flex items-center justify-center py-20"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-violet-500"></div></div>
+                    ) : filteredReviews.length === 0 ? (
+                        <p className="text-secondary text-center mt-10">{tSearch || tFilter !== 'all' ? 'No matching reviews found' : 'No reviews found.'}</p>
                     ) : (
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                            {reviews.map((review) => (
+                            {filteredReviews.map((review) => (
                                 <div
                                     key={review.id}
-                                    className="bg-black-100 rounded-2xl p-4 md:p-5 flex flex-col"
+                                    className="bg-[#1a1d2e] rounded-2xl p-4 md:p-5 flex flex-col border border-[#252836] hover:border-[#353849] transition-all"
                                 >
                                     {/* Header */}
                                     <div className="flex justify-between items-start mb-3">
@@ -177,7 +243,7 @@ const ManageTestimonials = () => {
                                             <h3 className="font-bold text-base md:text-lg">{review.name}</h3>
                                             {renderStars(review.rating)}
                                         </div>
-                                        <span className={`px-2 py-1 rounded-full text-xs font-bold ${review.isApproved ? 'bg-green-500/20 text-green-500' : 'bg-yellow-500/20 text-yellow-500'}`}>
+                                        <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold border ${review.isApproved ? 'bg-emerald-500/10 text-emerald-300 border-emerald-500/20' : 'bg-amber-500/10 text-amber-300 border-amber-500/20'}`}>
                                             {review.isApproved ? "Approved" : "Pending"}
                                         </span>
                                     </div>
@@ -191,20 +257,20 @@ const ManageTestimonials = () => {
                                     <div className="flex gap-2 mt-auto">
                                         <button
                                             onClick={() => startEdit(review)}
-                                            className="flex-1 flex items-center justify-center gap-2 bg-violet-600 hover:bg-violet-700 py-2 px-3 rounded-lg transition-colors text-sm"
+                                            className="flex-1 flex items-center justify-center gap-2 bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-400 hover:to-indigo-500 py-2.5 px-3 rounded-xl transition-all text-sm font-bold shadow-md shadow-purple-500/20 text-white"
                                         >
                                             <Pencil size={14} /> Edit
                                         </button>
                                         <button
                                             onClick={() => handleApprove(review.id, review.isApproved)}
-                                            className={`p-2 rounded-lg transition-colors ${review.isApproved ? 'bg-orange-600 hover:bg-orange-700' : 'bg-green-600 hover:bg-green-700'}`}
+                                            className={`p-2.5 rounded-xl transition-all font-bold shadow-md ${review.isApproved ? 'bg-gradient-to-r from-amber-500 to-orange-500 shadow-amber-500/20 text-white' : 'bg-gradient-to-r from-emerald-500 to-green-600 shadow-emerald-500/20 text-white'}`}
                                             title={review.isApproved ? "Unapprove" : "Approve"}
                                         >
                                             <Check size={16} />
                                         </button>
                                         <button
                                             onClick={() => handleDelete(review.id)}
-                                            className="p-2 bg-red-600 rounded-lg hover:bg-red-700 transition-colors"
+                                            className="p-2.5 bg-gradient-to-r from-red-500 to-pink-600 rounded-xl shadow-md shadow-red-500/20 text-white transition-all"
                                             title="Delete"
                                         >
                                             <Trash2 size={16} />

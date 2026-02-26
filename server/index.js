@@ -201,10 +201,33 @@ app.delete('/api/testimonials/:id', authMiddleware, async (req, res) => {
 // --- CONTACT ROUTES ---
 app.get('/api/contacts', authMiddleware, async (req, res) => {
     try {
-        const limit = parseInt(req.query.limit) || undefined;
+        const { status, priority, search, sort, order, limit: lim } = req.query;
+        const where = {};
+
+        if (status && status !== 'all') where.status = status;
+        if (priority && priority !== 'all') where.priority = priority;
+        if (search) {
+            where.OR = [
+                { name: { contains: search, mode: 'insensitive' } },
+                { email: { contains: search, mode: 'insensitive' } },
+                { subject: { contains: search, mode: 'insensitive' } },
+                { message: { contains: search, mode: 'insensitive' } },
+            ];
+        }
+
+        const orderBy = {};
+        if (sort === 'priority') {
+            // manual sort later
+        } else if (sort === 'budget') {
+            orderBy.budget = order === 'asc' ? 'asc' : 'desc';
+        } else {
+            orderBy.created_at = order === 'asc' ? 'asc' : 'desc';
+        }
+
         const contacts = await prisma.contactMessage.findMany({
-            orderBy: { created_at: 'desc' },
-            take: limit,
+            where,
+            orderBy: sort !== 'priority' ? orderBy : { created_at: 'desc' },
+            take: lim ? parseInt(lim) : undefined,
         });
         res.json(contacts);
     } catch (error) {
@@ -233,9 +256,15 @@ app.post('/api/contacts', async (req, res) => {
 
 app.put('/api/contacts/:id', authMiddleware, async (req, res) => {
     try {
-        const { isRead } = req.body;
+        const { isRead, status, priority, notes, quotedPrice, paidAmount, paymentStatus } = req.body;
         const data = {};
         if (isRead !== undefined) data.isRead = isRead;
+        if (status !== undefined) data.status = status;
+        if (priority !== undefined) data.priority = priority;
+        if (notes !== undefined) data.notes = notes;
+        if (quotedPrice !== undefined) data.quotedPrice = quotedPrice;
+        if (paidAmount !== undefined) data.paidAmount = paidAmount;
+        if (paymentStatus !== undefined) data.paymentStatus = paymentStatus;
 
         const contact = await prisma.contactMessage.update({
             where: { id: req.params.id },
@@ -251,6 +280,67 @@ app.delete('/api/contacts/:id', authMiddleware, async (req, res) => {
     try {
         await prisma.contactMessage.delete({ where: { id: req.params.id } });
         res.json({ message: 'Contact deleted successfully' });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// --- DASHBOARD STATS (optimized single endpoint) ---
+app.get('/api/dashboard/stats', authMiddleware, async (req, res) => {
+    try {
+        const [blogs, testimonials, contacts] = await Promise.all([
+            prisma.blog.findMany({ orderBy: { created_at: 'desc' } }),
+            prisma.testimonial.findMany({ orderBy: { created_at: 'desc' } }),
+            prisma.contactMessage.findMany({ orderBy: { created_at: 'desc' } }),
+        ]);
+
+        const avgRating = testimonials.length > 0
+            ? (testimonials.reduce((sum, t) => sum + (t.rating || 5), 0) / testimonials.length).toFixed(1)
+            : '0.0';
+
+        const statusBreakdown = { pending: 0, in_progress: 0, completed: 0, rejected: 0 };
+        let totalQuoted = 0, totalPaid = 0;
+        const paymentBreakdown = { unpaid: 0, partial: 0, paid: 0 };
+
+        contacts.forEach(c => {
+            statusBreakdown[c.status] = (statusBreakdown[c.status] || 0) + 1;
+            if (c.quotedPrice) totalQuoted += parseFloat(c.quotedPrice) || 0;
+            if (c.paidAmount) totalPaid += parseFloat(c.paidAmount) || 0;
+            paymentBreakdown[c.paymentStatus] = (paymentBreakdown[c.paymentStatus] || 0) + 1;
+        });
+
+        const serviceBreakdown = {};
+        contacts.forEach(c => {
+            const svc = c.subject || 'Other';
+            serviceBreakdown[svc] = (serviceBreakdown[svc] || 0) + 1;
+        });
+
+        res.json({
+            blogs: {
+                total: blogs.length,
+                published: blogs.filter(b => b.published).length,
+                draft: blogs.filter(b => !b.published).length,
+                featured: blogs.filter(b => b.featured).length,
+                recent: blogs.slice(0, 3),
+            },
+            testimonials: {
+                total: testimonials.length,
+                approved: testimonials.filter(t => t.isApproved).length,
+                pending: testimonials.filter(t => !t.isApproved).length,
+                avgRating: parseFloat(avgRating),
+            },
+            contacts: {
+                total: contacts.length,
+                unread: contacts.filter(c => !c.isRead).length,
+                read: contacts.filter(c => c.isRead).length,
+                recent: contacts.slice(0, 5),
+                statusBreakdown,
+                paymentBreakdown,
+                totalQuoted,
+                totalPaid,
+                serviceBreakdown,
+            },
+        });
     } catch (error) {
         res.status(500).json({ error: error.message });
     }

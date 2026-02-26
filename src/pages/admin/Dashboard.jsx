@@ -1,526 +1,569 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import Sidebar from "../../components/admin/Sidebar";
 import API_BASE_URL from "../../config";
 
-
 import {
     Menu, FileText, MessageSquare, Mail, Star,
-    TrendingUp, Clock, CheckCircle, X,
-    Calendar, IndianRupee, Briefcase, ChevronRight, Phone, MessageCircle
+    Clock, CheckCircle, X, XCircle,
+    RefreshCw, Users, Loader, AlertCircle,
+    DollarSign, BarChart3,
+    Layers, Target, Award, Sparkles,
+    ChevronRight, IndianRupee, Briefcase,
+    MessageCircle, Phone, Eye, PieChart, Zap, TrendingUp
 } from "lucide-react";
+
+const STATUS_CFG = {
+    pending: { label: "Pending", bg: "bg-amber-500", light: "bg-amber-500/15 text-amber-400 border-amber-500/30" },
+    in_progress: { label: "In Progress", bg: "bg-blue-500", light: "bg-blue-500/15 text-blue-400 border-blue-500/30" },
+    completed: { label: "Completed", bg: "bg-emerald-500", light: "bg-emerald-500/15 text-emerald-400 border-emerald-500/30" },
+    rejected: { label: "Rejected", bg: "bg-red-500", light: "bg-red-500/15 text-red-400 border-red-500/30" },
+};
+
+const StatusBadge = ({ status }) => {
+    const c = STATUS_CFG[status] || STATUS_CFG.pending;
+    return (
+        <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider border ${c.light}`}>
+            <span className={`w-2 h-2 rounded-full ${c.bg}`} />
+            {c.label}
+        </span>
+    );
+};
 
 const Dashboard = () => {
     const navigate = useNavigate();
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [loading, setLoading] = useState(true);
+    const [refreshing, setRefreshing] = useState(false);
+    const [lastUpdated, setLastUpdated] = useState(null);
     const [selectedContact, setSelectedContact] = useState(null);
-    const [stats, setStats] = useState({
-        totalBlogs: 0,
-        publishedBlogs: 0,
-        draftBlogs: 0,
-        featuredBlogs: 0,
-        totalTestimonials: 0,
-        approvedTestimonials: 0,
-        pendingTestimonials: 0,
-        avgRating: 0,
-        totalContacts: 0,
-        unreadContacts: 0,
-        readContacts: 0,
-        recentContacts: [],
-        recentBlogs: [],
-        serviceBreakdown: {},
-        budgetBreakdown: {}
-    });
+    const [stats, setStats] = useState(null);
+    const [activeTab, setActiveTab] = useState('overview');
 
-    const fetchAllStats = async () => {
-        setLoading(true);
+    const fetchStats = useCallback(async (isRefresh = false) => {
+        if (isRefresh) setRefreshing(true); else setLoading(true);
         try {
             const token = localStorage.getItem('token');
-            const headers = { 'Authorization': `Bearer ${token}` };
-
-            const [blogsRes, testimonialsRes, contactsRes] = await Promise.all([
-                fetch(`${API_BASE_URL}/api/blogs`, { headers }),
-                fetch(`${API_BASE_URL}/api/testimonials`, { headers }),
-                fetch(`${API_BASE_URL}/api/contacts`, { headers })
-            ]);
-
-            const blogs = blogsRes.ok ? await blogsRes.json() : [];
-            const testimonials = testimonialsRes.ok ? await testimonialsRes.json() : [];
-            let contacts = contactsRes.ok ? await contactsRes.json() : [];
-
-            const blogStats = {
-                total: blogs?.length || 0,
-                published: blogs?.filter(b => true).length || 0, // Assuming all blogs are published since there's no status in schema yet
-                draft: 0,
-                featured: 0
-            };
-
-            const testimonialStats = {
-                total: testimonials?.length || 0,
-                approved: testimonials?.filter(t => t.isApproved).length || 0,
-                pending: testimonials?.filter(t => !t.isApproved).length || 0,
-                avgRating: 5 // Optional: handle rating calculation if added to schema
-            };
-
-            const contactStats = {
-                total: contacts?.length || 0,
-                unread: contacts?.filter(c => !c.isRead).length || 0,
-                read: contacts?.filter(c => c.isRead).length || 0
-            };
-
-            const serviceBreakdown = {};
-            contacts?.forEach(c => {
-                const service = c.subject || 'Other';
-                serviceBreakdown[service] = (serviceBreakdown[service] || 0) + 1;
-            });
-
-            const budgetBreakdown = {};
-            contacts?.forEach(c => {
-                const budget = c.budget || 'Not Specified';
-                budgetBreakdown[budget] = (budgetBreakdown[budget] || 0) + 1;
-            });
-
-            setStats({
-                totalBlogs: blogStats.total,
-                publishedBlogs: blogStats.published,
-                draftBlogs: blogStats.draft,
-                featuredBlogs: blogStats.featured,
-                totalTestimonials: testimonialStats.total,
-                approvedTestimonials: testimonialStats.approved,
-                pendingTestimonials: testimonialStats.pending,
-                avgRating: testimonialStats.avgRating,
-                totalContacts: contactStats.total,
-                unreadContacts: contactStats.unread,
-                readContacts: contactStats.read,
-                recentContacts: contacts?.slice(0, 5) || [],
-                recentBlogs: blogs?.slice(0, 3) || [],
-                serviceBreakdown,
-                budgetBreakdown
-            });
-        } catch (error) {
-            console.error('Error fetching stats:', error);
-        }
-        setLoading(false);
-    };
-
-    useEffect(() => {
-        fetchAllStats();
+            const res = await fetch(`${API_BASE_URL}/api/dashboard/stats`, { headers: { Authorization: `Bearer ${token}` } });
+            if (res.ok) { setStats(await res.json()); setLastUpdated(new Date()); }
+        } catch (e) { console.error(e); }
+        setLoading(false); setRefreshing(false);
     }, []);
 
-    const formatTimeAgo = (dateString) => {
-        const now = new Date();
-        const date = new Date(dateString);
-        const diffMs = now - date;
-        const diffMins = Math.floor(diffMs / 60000);
-        const diffHours = Math.floor(diffMs / 3600000);
-        const diffDays = Math.floor(diffMs / 86400000);
+    useEffect(() => { fetchStats(); const t = setInterval(() => fetchStats(true), 30000); return () => clearInterval(t); }, [fetchStats]);
 
-        if (diffMins < 1) return 'Just now';
-        if (diffMins < 60) return `${diffMins}m ago`;
-        if (diffHours < 24) return `${diffHours}h ago`;
-        return `${diffDays}d ago`;
-    };
-
-    const formatDate = (dateString) => {
-        return new Date(dateString).toLocaleDateString('en-IN', {
-            day: 'numeric',
-            month: 'short',
-            year: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit'
-        });
-    };
-
-    const openWhatsApp = (mobile) => {
-        let phone = mobile.replace(/[^\d+]/g, '');
-        if (!phone.startsWith('+')) {
-            phone = '+91' + phone;
-        }
-        window.open(`https://wa.me/${phone.replace('+', '')}`, '_blank');
-    };
-
-    const openEmail = (email, name) => {
-        const subject = encodeURIComponent(`Re: Your Portfolio Inquiry`);
-        const body = encodeURIComponent(`Hi ${name},\n\nThank you for reaching out!\n\n`);
-        window.open(`mailto:${email}?subject=${subject}&body=${body}`, '_blank');
-    };
-
-    const StatCard = ({ title, value, icon: Icon, color, subStats, onClick }) => (
-        <div
-            onClick={onClick}
-            className={`bg-black-100 p-5 md:p-6 rounded-2xl transition-all ${onClick ? 'cursor-pointer hover:bg-black-200 hover:scale-[1.02]' : ''}`}
-        >
-            <div className="flex items-start justify-between mb-3">
-                <div className={`p-3 rounded-xl ${color}`}>
-                    <Icon size={22} className="text-white" />
-                </div>
-                <div className="flex items-center gap-2">
-                    <span className="text-3xl md:text-4xl font-bold text-white">{value}</span>
-                    {onClick && <ChevronRight size={20} className="text-secondary" />}
-                </div>
-            </div>
-            <h3 className="text-secondary text-sm md:text-base font-medium">{title}</h3>
-            {subStats && (
-                <div className="flex gap-3 mt-3 pt-3 border-t border-gray-800">
-                    {subStats.map((sub, i) => (
-                        <div key={i} className="flex items-center gap-1">
-                            <span className={`w-2 h-2 rounded-full ${sub.color}`}></span>
-                            <span className="text-xs text-secondary">{sub.value} {sub.label}</span>
-                        </div>
-                    ))}
-                </div>
-            )}
-        </div>
-    );
+    const timeAgo = (d) => { const ms = Date.now() - new Date(d); const m = Math.floor(ms / 60000), h = Math.floor(ms / 3600000), dy = Math.floor(ms / 86400000); if (m < 1) return 'Now'; if (m < 60) return `${m}m`; if (h < 24) return `${h}h`; return `${dy}d`; };
+    const fmtDate = (d) => new Date(d).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+    const fmtCurrency = (n) => { if (!n) return '₹0'; if (n >= 100000) return '₹' + (n / 100000).toFixed(1) + 'L'; if (n >= 1000) return '₹' + (n / 1000).toFixed(1) + 'K'; return '₹' + Number(n).toLocaleString('en-IN'); };
+    const openWhatsApp = (m) => { let p = m.replace(/[^\d+]/g, ''); if (!p.startsWith('+')) p = '+91' + p; window.open(`https://wa.me/${p.replace('+', '')}`, '_blank'); };
+    const openEmail = (e, n) => window.open(`mailto:${e}?subject=${encodeURIComponent('Re: Portfolio Inquiry')}&body=${encodeURIComponent(`Hi ${n},\n\n`)}`, '_blank');
 
     return (
-        <div className="flex bg-primary min-h-screen">
+        <div className="flex min-h-screen bg-[#0f1117]">
             <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
             <div className="flex-1 md:ml-64 min-h-screen">
                 {/* Mobile Header */}
-                <div className="md:hidden flex items-center gap-4 p-4 bg-tertiary sticky top-0 z-30">
-                    <button
-                        onClick={() => setSidebarOpen(true)}
-                        className="p-2 text-white hover:bg-white/10 rounded-lg transition-colors"
-                    >
-                        <Menu size={24} />
-                    </button>
-                    <h1 className="text-white text-xl font-bold">Dashboard</h1>
+                <div className="md:hidden flex items-center gap-3 px-4 py-3 bg-[#161822] border-b border-[#252836] sticky top-0 z-30">
+                    <button onClick={() => setSidebarOpen(true)} className="p-2 text-white/60 hover:text-white rounded-lg transition-colors"><Menu size={20} /></button>
+                    <h1 className="text-white font-bold flex-1 text-lg">Dashboard</h1>
+                    <button onClick={() => fetchStats(true)} className={`p-2 text-white/40 hover:text-white rounded-lg ${refreshing ? 'animate-spin' : ''}`}><RefreshCw size={16} /></button>
                 </div>
 
-                {/* Content Area */}
-                <div className="p-4 md:p-10 text-white">
-                    {/* Desktop Title */}
+                <div className="p-4 md:p-6 xl:p-8">
+                    {/* Desktop Header */}
                     <div className="hidden md:flex items-center justify-between mb-8">
                         <div>
-                            <h1 className="text-4xl font-bold">Dashboard</h1>
-                            <p className="text-secondary mt-1">Welcome back! Here's your portfolio overview.</p>
+                            <h1 className="text-3xl font-extrabold text-white">Dashboard</h1>
+                            <p className="text-white/40 text-sm mt-1">Real-time overview of your business</p>
                         </div>
-                        <div className="flex items-center gap-2 text-secondary text-sm">
-                            <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                            Real-time updates
+                        <div className="flex items-center gap-3">
+                            <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-emerald-500/15 border border-emerald-500/25">
+                                <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                                <span className="text-emerald-400 text-xs font-bold">LIVE</span>
+                            </div>
+                            <button onClick={() => fetchStats(true)} disabled={refreshing}
+                                className="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-[#252836] hover:bg-[#2d3044] text-white/70 text-sm font-medium border border-[#353849] transition-all">
+                                <RefreshCw size={14} className={refreshing ? 'animate-spin' : ''} /> Refresh
+                            </button>
                         </div>
                     </div>
 
+                    {/* Tabs */}
+                    <div className="flex gap-1 bg-[#1a1d2e] p-1.5 rounded-xl mb-6 w-fit border border-[#252836]">
+                        {[
+                            { id: 'overview', label: 'Overview', icon: Layers },
+                            { id: 'clients', label: 'Clients', icon: Users },
+                            { id: 'analytics', label: 'Analytics', icon: BarChart3 },
+                        ].map(tab => (
+                            <button key={tab.id} onClick={() => setActiveTab(tab.id)}
+                                className={`flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-semibold transition-all ${activeTab === tab.id
+                                    ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white shadow-lg shadow-purple-500/25'
+                                    : 'text-white/40 hover:text-white/70'}`}>
+                                <tab.icon size={14} /> {tab.label}
+                            </button>
+                        ))}
+                    </div>
+
                     {loading ? (
-                        <div className="flex items-center justify-center py-20">
-                            <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-violet-500"></div>
+                        <div className="flex flex-col items-center justify-center py-32 gap-4">
+                            <Loader size={28} className="animate-spin text-purple-500" />
+                            <p className="text-white/30 text-sm">Loading dashboard...</p>
                         </div>
-                    ) : (
-                        <div className="space-y-6">
-                            {/* Main Stats Grid */}
-                            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                                <StatCard
-                                    title="Total Blogs"
-                                    value={stats.totalBlogs}
-                                    icon={FileText}
-                                    color="bg-violet-600"
-                                    onClick={() => navigate('/x7k9m2p4q/blogs')}
-                                    subStats={[
-                                        { value: stats.publishedBlogs, label: 'Published', color: 'bg-green-500' },
-                                        { value: stats.draftBlogs, label: 'Draft', color: 'bg-yellow-500' }
-                                    ]}
-                                />
-                                <StatCard
-                                    title="Testimonials"
-                                    value={stats.totalTestimonials}
-                                    icon={MessageSquare}
-                                    color="bg-blue-600"
-                                    onClick={() => navigate('/x7k9m2p4q/testimonials')}
-                                    subStats={[
-                                        { value: stats.approvedTestimonials, label: 'Approved', color: 'bg-green-500' },
-                                        { value: stats.pendingTestimonials, label: 'Pending', color: 'bg-yellow-500' }
-                                    ]}
-                                />
-                                <StatCard
-                                    title="Contact Messages"
-                                    value={stats.totalContacts}
-                                    icon={Mail}
-                                    color="bg-green-600"
-                                    onClick={() => navigate('/x7k9m2p4q/contacts')}
-                                    subStats={[
-                                        { value: stats.unreadContacts, label: 'Unread', color: 'bg-violet-500' },
-                                        { value: stats.readContacts, label: 'Read', color: 'bg-gray-500' }
-                                    ]}
-                                />
-                                <StatCard
-                                    title="Avg Rating"
-                                    value={stats.avgRating}
-                                    icon={Star}
-                                    color="bg-yellow-600"
-                                    onClick={() => navigate('/x7k9m2p4q/testimonials')}
-                                />
-                            </div>
+                    ) : stats ? (
+                        <>
+                            {/* ═══════ OVERVIEW ═══════ */}
+                            {activeTab === 'overview' && (
+                                <div className="space-y-5">
+                                    {/* Stat Cards - Gradient Style */}
+                                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                                        {/* Blogs */}
+                                        <div onClick={() => navigate('/x7k9m2p4q/blogs')} className="cursor-pointer group rounded-2xl p-5 bg-gradient-to-br from-purple-600 to-indigo-700 hover:from-purple-500 hover:to-indigo-600 shadow-lg shadow-purple-500/20 hover:shadow-purple-500/30 transition-all hover:scale-[1.02]">
+                                            <div className="flex items-center justify-between mb-4">
+                                                <div className="w-11 h-11 rounded-xl bg-white/15 flex items-center justify-center backdrop-blur-sm">
+                                                    <FileText size={20} className="text-white" />
+                                                </div>
+                                                <ChevronRight size={16} className="text-white/40 group-hover:text-white/80 transition-colors" />
+                                            </div>
+                                            <p className="text-4xl font-black text-white mb-1">{stats.blogs.total}</p>
+                                            <p className="text-white/60 text-sm font-medium">Total Blogs</p>
+                                            <div className="flex gap-3 mt-3 pt-3 border-t border-white/15">
+                                                <span className="text-white/50 text-xs">{stats.blogs.published} published</span>
+                                                <span className="text-white/50 text-xs">{stats.blogs.draft} draft</span>
+                                            </div>
+                                        </div>
 
-                            {/* Analytics Row */}
-                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                                {/* Service Breakdown */}
-                                <div className="bg-black-100 p-5 md:p-6 rounded-2xl">
-                                    <div className="flex items-center gap-2 mb-4">
-                                        <Briefcase size={18} className="text-violet-500" />
-                                        <h3 className="text-lg font-bold">Services Requested</h3>
+                                        {/* Testimonials */}
+                                        <div onClick={() => navigate('/x7k9m2p4q/testimonials')} className="cursor-pointer group rounded-2xl p-5 bg-gradient-to-br from-cyan-500 to-teal-600 hover:from-cyan-400 hover:to-teal-500 shadow-lg shadow-cyan-500/20 hover:shadow-cyan-500/30 transition-all hover:scale-[1.02]">
+                                            <div className="flex items-center justify-between mb-4">
+                                                <div className="w-11 h-11 rounded-xl bg-white/15 flex items-center justify-center backdrop-blur-sm">
+                                                    <MessageSquare size={20} className="text-white" />
+                                                </div>
+                                                <ChevronRight size={16} className="text-white/40 group-hover:text-white/80 transition-colors" />
+                                            </div>
+                                            <p className="text-4xl font-black text-white mb-1">{stats.testimonials.total}</p>
+                                            <p className="text-white/60 text-sm font-medium">Testimonials</p>
+                                            <div className="flex gap-3 mt-3 pt-3 border-t border-white/15">
+                                                <span className="text-white/50 text-xs">{stats.testimonials.approved} approved</span>
+                                                <span className="text-white/50 text-xs">{stats.testimonials.pending} pending</span>
+                                            </div>
+                                        </div>
+
+                                        {/* Client Inquiries */}
+                                        <div onClick={() => navigate('/x7k9m2p4q/contacts')} className="cursor-pointer group rounded-2xl p-5 bg-gradient-to-br from-orange-500 to-pink-600 hover:from-orange-400 hover:to-pink-500 shadow-lg shadow-orange-500/20 hover:shadow-orange-500/30 transition-all hover:scale-[1.02]">
+                                            <div className="flex items-center justify-between mb-4">
+                                                <div className="w-11 h-11 rounded-xl bg-white/15 flex items-center justify-center backdrop-blur-sm">
+                                                    <Users size={20} className="text-white" />
+                                                </div>
+                                                <ChevronRight size={16} className="text-white/40 group-hover:text-white/80 transition-colors" />
+                                            </div>
+                                            <p className="text-4xl font-black text-white mb-1">{stats.contacts.total}</p>
+                                            <p className="text-white/60 text-sm font-medium">Client Inquiries</p>
+                                            <div className="flex gap-3 mt-3 pt-3 border-t border-white/15">
+                                                <span className="text-white/50 text-xs">{stats.contacts.unread} unread</span>
+                                                <span className="text-white/50 text-xs">{stats.contacts.read} read</span>
+                                            </div>
+                                        </div>
+
+                                        {/* Avg Rating */}
+                                        <div onClick={() => navigate('/x7k9m2p4q/testimonials')} className="cursor-pointer group rounded-2xl p-5 bg-gradient-to-br from-amber-500 to-yellow-600 hover:from-amber-400 hover:to-yellow-500 shadow-lg shadow-amber-500/20 hover:shadow-amber-500/30 transition-all hover:scale-[1.02]">
+                                            <div className="flex items-center justify-between mb-4">
+                                                <div className="w-11 h-11 rounded-xl bg-white/15 flex items-center justify-center backdrop-blur-sm">
+                                                    <Star size={20} className="text-white" />
+                                                </div>
+                                                <ChevronRight size={16} className="text-white/40 group-hover:text-white/80 transition-colors" />
+                                            </div>
+                                            <div className="flex items-baseline gap-1 mb-1">
+                                                <p className="text-4xl font-black text-white">{stats.testimonials.avgRating}</p>
+                                                <span className="text-white/50 text-lg">/5</span>
+                                            </div>
+                                            <p className="text-white/60 text-sm font-medium">Avg Rating</p>
+                                            <div className="flex gap-0.5 mt-3 pt-3 border-t border-white/15">
+                                                {[1, 2, 3, 4, 5].map(s => <Star key={s} size={14} className={s <= Math.round(stats.testimonials.avgRating) ? "text-white fill-white" : "text-white/25"} />)}
+                                            </div>
+                                        </div>
                                     </div>
-                                    {Object.keys(stats.serviceBreakdown).length > 0 ? (
-                                        <div className="space-y-3">
-                                            {Object.entries(stats.serviceBreakdown).map(([service, count]) => {
-                                                const percentage = Math.round((count / stats.totalContacts) * 100);
-                                                return (
-                                                    <div key={service}>
-                                                        <div className="flex justify-between text-sm mb-1">
-                                                            <span className="text-secondary">{service}</span>
-                                                            <span className="text-white font-medium">{count} ({percentage}%)</span>
+
+                                    {/* Revenue + Pipeline + Payments */}
+                                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                                        {/* Revenue */}
+                                        <div className="bg-[#1a1d2e] rounded-2xl p-6 border border-[#252836]">
+                                            <div className="flex items-center gap-3 mb-6">
+                                                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-green-600 flex items-center justify-center shadow-md shadow-emerald-500/20">
+                                                    <IndianRupee size={18} className="text-white" />
+                                                </div>
+                                                <h3 className="text-white font-bold text-lg">Revenue</h3>
+                                            </div>
+                                            <div className="space-y-5">
+                                                <div>
+                                                    <p className="text-white/30 text-xs uppercase tracking-widest font-bold mb-1">Total Quoted</p>
+                                                    <p className="text-2xl font-extrabold text-white">{fmtCurrency(stats.contacts.totalQuoted)}</p>
+                                                </div>
+                                                <div className="h-px bg-[#252836]" />
+                                                <div>
+                                                    <p className="text-white/30 text-xs uppercase tracking-widest font-bold mb-1">Received</p>
+                                                    <p className="text-2xl font-extrabold text-emerald-400">{fmtCurrency(stats.contacts.totalPaid)}</p>
+                                                </div>
+                                                <div className="h-px bg-[#252836]" />
+                                                <div>
+                                                    <p className="text-white/30 text-xs uppercase tracking-widest font-bold mb-1">Outstanding</p>
+                                                    <p className="text-2xl font-extrabold text-amber-400">{fmtCurrency(stats.contacts.totalQuoted - stats.contacts.totalPaid)}</p>
+                                                </div>
+                                                {stats.contacts.totalQuoted > 0 && (
+                                                    <div className="pt-2">
+                                                        <div className="flex justify-between text-xs mb-2">
+                                                            <span className="text-white/30 font-medium">Collection</span>
+                                                            <span className="text-emerald-400 font-bold">{Math.round((stats.contacts.totalPaid / stats.contacts.totalQuoted) * 100)}%</span>
                                                         </div>
-                                                        <div className="h-2 bg-tertiary rounded-full overflow-hidden">
-                                                            <div
-                                                                className="h-full bg-gradient-to-r from-violet-600 to-blue-600 rounded-full transition-all duration-500"
-                                                                style={{ width: `${percentage}%` }}
-                                                            />
+                                                        <div className="h-3 bg-[#252836] rounded-full overflow-hidden">
+                                                            <div className="h-full bg-gradient-to-r from-emerald-500 to-green-400 rounded-full transition-all" style={{ width: `${Math.min(100, Math.round((stats.contacts.totalPaid / stats.contacts.totalQuoted) * 100))}%` }} />
                                                         </div>
                                                     </div>
-                                                );
-                                            })}
+                                                )}
+                                            </div>
                                         </div>
-                                    ) : (
-                                        <p className="text-secondary text-center py-8">No data yet</p>
-                                    )}
+
+                                        {/* Pipeline */}
+                                        <div className="bg-[#1a1d2e] rounded-2xl p-6 border border-[#252836]">
+                                            <div className="flex items-center gap-3 mb-6">
+                                                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center shadow-md shadow-purple-500/20">
+                                                    <Target size={18} className="text-white" />
+                                                </div>
+                                                <h3 className="text-white font-bold text-lg">Pipeline</h3>
+                                            </div>
+                                            <div className="space-y-4">
+                                                {[
+                                                    { key: 'pending', label: 'Pending', gradient: 'from-amber-500 to-orange-500', bg: 'bg-amber-500' },
+                                                    { key: 'in_progress', label: 'In Progress', gradient: 'from-blue-500 to-cyan-500', bg: 'bg-blue-500' },
+                                                    { key: 'completed', label: 'Completed', gradient: 'from-emerald-500 to-green-500', bg: 'bg-emerald-500' },
+                                                    { key: 'rejected', label: 'Rejected', gradient: 'from-red-500 to-pink-500', bg: 'bg-red-500' },
+                                                ].map(({ key, label, gradient, bg }) => {
+                                                    const count = stats.contacts.statusBreakdown[key] || 0;
+                                                    const pct = stats.contacts.total ? Math.round((count / stats.contacts.total) * 100) : 0;
+                                                    return (
+                                                        <div key={key}>
+                                                            <div className="flex justify-between items-center mb-2">
+                                                                <div className="flex items-center gap-2">
+                                                                    <span className={`w-3 h-3 rounded-md ${bg}`} />
+                                                                    <span className="text-white/70 text-sm font-medium">{label}</span>
+                                                                </div>
+                                                                <div className="flex items-center gap-2">
+                                                                    <span className="text-white font-bold text-sm">{count}</span>
+                                                                    <span className="text-white/25 text-xs">{pct}%</span>
+                                                                </div>
+                                                            </div>
+                                                            <div className="h-2.5 bg-[#252836] rounded-full overflow-hidden">
+                                                                <div className={`h-full bg-gradient-to-r ${gradient} rounded-full transition-all duration-700`} style={{ width: `${pct}%` }} />
+                                                            </div>
+                                                        </div>
+                                                    );
+                                                })}
+                                            </div>
+                                        </div>
+
+                                        {/* Payments */}
+                                        <div className="bg-[#1a1d2e] rounded-2xl p-6 border border-[#252836]">
+                                            <div className="flex items-center gap-3 mb-6">
+                                                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center shadow-md shadow-cyan-500/20">
+                                                    <DollarSign size={18} className="text-white" />
+                                                </div>
+                                                <h3 className="text-white font-bold text-lg">Payments</h3>
+                                            </div>
+                                            <div className="space-y-4">
+                                                {[
+                                                    { key: 'paid', label: 'Paid', gradient: 'from-emerald-500 to-green-500', bg: 'bg-emerald-500' },
+                                                    { key: 'partial', label: 'Partial', gradient: 'from-amber-500 to-yellow-500', bg: 'bg-amber-500' },
+                                                    { key: 'unpaid', label: 'Unpaid', gradient: 'from-red-500 to-rose-500', bg: 'bg-red-500' },
+                                                ].map(({ key, label, gradient, bg }) => {
+                                                    const count = stats.contacts.paymentBreakdown[key] || 0;
+                                                    const pct = stats.contacts.total ? Math.round((count / stats.contacts.total) * 100) : 0;
+                                                    return (
+                                                        <div key={key}>
+                                                            <div className="flex justify-between items-center mb-2">
+                                                                <div className="flex items-center gap-2">
+                                                                    <span className={`w-3 h-3 rounded-md ${bg}`} />
+                                                                    <span className="text-white/70 text-sm font-medium">{label}</span>
+                                                                </div>
+                                                                <span className="text-white font-bold text-sm">{count}</span>
+                                                            </div>
+                                                            <div className="h-2.5 bg-[#252836] rounded-full overflow-hidden">
+                                                                <div className={`h-full bg-gradient-to-r ${gradient} rounded-full transition-all duration-700`} style={{ width: `${pct}%` }} />
+                                                            </div>
+                                                        </div>
+                                                    );
+                                                })}
+                                            </div>
+                                            <div className="mt-6 pt-4 border-t border-[#252836] grid grid-cols-3 gap-3">
+                                                {[
+                                                    { label: 'Published', value: stats.blogs.published, color: 'text-purple-400' },
+                                                    { label: 'Approved', value: stats.testimonials.approved, color: 'text-cyan-400' },
+                                                    { label: 'Featured', value: stats.blogs.featured, color: 'text-amber-400' },
+                                                ].map(({ label, value, color }) => (
+                                                    <div key={label} className="text-center bg-[#252836] rounded-xl p-3">
+                                                        <p className={`text-xl font-black ${color}`}>{value}</p>
+                                                        <p className="text-white/30 text-[10px] font-bold uppercase mt-0.5">{label}</p>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Services + Recent */}
+                                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                                        {/* Services */}
+                                        <div className="bg-[#1a1d2e] rounded-2xl p-6 border border-[#252836]">
+                                            <div className="flex items-center gap-3 mb-6">
+                                                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-pink-500 to-rose-600 flex items-center justify-center shadow-md shadow-pink-500/20">
+                                                    <Briefcase size={18} className="text-white" />
+                                                </div>
+                                                <h3 className="text-white font-bold text-lg">Services</h3>
+                                            </div>
+                                            {Object.keys(stats.contacts.serviceBreakdown).length > 0 ? (
+                                                <div className="space-y-4">
+                                                    {Object.entries(stats.contacts.serviceBreakdown).sort(([, a], [, b]) => b - a).map(([svc, count], i) => {
+                                                        const pct = Math.round((count / stats.contacts.total) * 100);
+                                                        const grads = ['from-purple-500 to-blue-500', 'from-cyan-500 to-teal-500', 'from-orange-500 to-pink-500', 'from-emerald-500 to-green-500', 'from-amber-500 to-yellow-500'];
+                                                        const colors = ['text-purple-400', 'text-cyan-400', 'text-orange-400', 'text-emerald-400', 'text-amber-400'];
+                                                        return (
+                                                            <div key={svc}>
+                                                                <div className="flex justify-between text-sm mb-2">
+                                                                    <span className="text-white/60 font-medium truncate">{svc}</span>
+                                                                    <span className={`font-bold ${colors[i % colors.length]}`}>{count} <span className="text-white/20">({pct}%)</span></span>
+                                                                </div>
+                                                                <div className="h-2.5 bg-[#252836] rounded-full overflow-hidden">
+                                                                    <div className={`h-full bg-gradient-to-r ${grads[i % grads.length]} rounded-full`} style={{ width: `${pct}%` }} />
+                                                                </div>
+                                                            </div>
+                                                        );
+                                                    })}
+                                                </div>
+                                            ) : <p className="text-white/20 text-center py-8">No data yet</p>}
+                                        </div>
+
+                                        {/* Recent */}
+                                        <div className="bg-[#1a1d2e] rounded-2xl border border-[#252836] overflow-hidden">
+                                            <div className="flex items-center justify-between p-6 pb-4">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center shadow-md shadow-violet-500/20">
+                                                        <Mail size={18} className="text-white" />
+                                                    </div>
+                                                    <h3 className="text-white font-bold text-lg">Recent Inquiries</h3>
+                                                </div>
+                                                <button onClick={() => navigate('/x7k9m2p4q/contacts')}
+                                                    className="text-purple-400 text-xs font-bold hover:text-purple-300 px-3 py-1.5 rounded-lg bg-purple-500/10 border border-purple-500/20 hover:bg-purple-500/20 transition-all">
+                                                    View All
+                                                </button>
+                                            </div>
+                                            {stats.contacts.recent.length > 0 ? (
+                                                <div>
+                                                    {stats.contacts.recent.map((c, i) => (
+                                                        <div key={c.id} onClick={() => setSelectedContact(c)}
+                                                            className={`flex items-center gap-3 px-6 py-3.5 cursor-pointer hover:bg-[#252836]/50 transition-all ${i !== stats.contacts.recent.length - 1 ? 'border-b border-[#252836]' : ''}`}>
+                                                            <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold text-sm ${!c.isRead ? 'bg-gradient-to-br from-purple-500 to-blue-500 text-white' : 'bg-[#252836] text-white/40'}`}>
+                                                                {c.name.charAt(0).toUpperCase()}
+                                                            </div>
+                                                            <div className="flex-1 min-w-0">
+                                                                <div className="flex items-center gap-2 mb-0.5">
+                                                                    <p className="text-white font-semibold text-sm truncate">{c.name}</p>
+                                                                    {!c.isRead && <span className="w-2 h-2 rounded-full bg-purple-500" />}
+                                                                </div>
+                                                                <p className="text-white/30 text-xs truncate">{c.subject || 'General Inquiry'}</p>
+                                                            </div>
+                                                            <StatusBadge status={c.status} />
+                                                            <span className="text-white/25 text-xs hidden md:block">{timeAgo(c.created_at)}</span>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            ) : <p className="text-white/20 text-center py-12">No inquiries yet</p>}
+                                        </div>
+                                    </div>
                                 </div>
+                            )}
 
-                                {/* Budget Distribution */}
-                                <div className="bg-black-100 p-5 md:p-6 rounded-2xl">
-                                    <div className="flex items-center gap-2 mb-4">
-                                        <IndianRupee size={18} className="text-green-500" />
-                                        <h3 className="text-lg font-bold">Budget Distribution</h3>
+                            {/* ═══════ CLIENTS ═══════ */}
+                            {activeTab === 'clients' && (
+                                <div className="space-y-5">
+                                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                        {[
+                                            { key: 'pending', label: 'Pending', gradient: 'from-amber-500 to-orange-600' },
+                                            { key: 'in_progress', label: 'In Progress', gradient: 'from-blue-500 to-cyan-600' },
+                                            { key: 'completed', label: 'Completed', gradient: 'from-emerald-500 to-green-600' },
+                                            { key: 'rejected', label: 'Rejected', gradient: 'from-red-500 to-pink-600' },
+                                        ].map(({ key, label, gradient }) => (
+                                            <div key={key} className={`rounded-2xl p-5 bg-gradient-to-br ${gradient} shadow-lg text-center`}>
+                                                <p className="text-4xl font-black text-white">{stats.contacts.statusBreakdown[key] || 0}</p>
+                                                <p className="text-white/70 text-sm font-medium mt-1">{label}</p>
+                                            </div>
+                                        ))}
                                     </div>
-                                    {Object.keys(stats.budgetBreakdown).length > 0 ? (
-                                        <div className="space-y-3">
-                                            {Object.entries(stats.budgetBreakdown).map(([budget, count]) => {
-                                                const percentage = Math.round((count / stats.totalContacts) * 100);
-                                                return (
-                                                    <div key={budget}>
-                                                        <div className="flex justify-between text-sm mb-1">
-                                                            <span className="text-secondary">{budget}</span>
-                                                            <span className="text-white font-medium">{count} ({percentage}%)</span>
-                                                        </div>
-                                                        <div className="h-2 bg-tertiary rounded-full overflow-hidden">
-                                                            <div
-                                                                className="h-full bg-gradient-to-r from-green-600 to-emerald-500 rounded-full transition-all duration-500"
-                                                                style={{ width: `${percentage}%` }}
-                                                            />
-                                                        </div>
-                                                    </div>
-                                                );
-                                            })}
+                                    <div className="bg-[#1a1d2e] rounded-2xl border border-[#252836] overflow-hidden">
+                                        <div className="px-6 py-4 border-b border-[#252836] flex items-center justify-between">
+                                            <h3 className="text-white font-bold">All Clients</h3>
+                                            <span className="bg-gradient-to-r from-purple-500 to-blue-500 text-white text-xs px-3 py-1 rounded-full font-bold">{stats.contacts.total}</span>
                                         </div>
-                                    ) : (
-                                        <p className="text-secondary text-center py-8">No data yet</p>
-                                    )}
+                                        {stats.contacts.recent.map((c, i) => (
+                                            <div key={c.id} onClick={() => setSelectedContact(c)}
+                                                className={`flex items-center gap-4 px-6 py-4 cursor-pointer hover:bg-[#252836]/50 transition-all ${i !== stats.contacts.recent.length - 1 ? 'border-b border-[#252836]' : ''}`}>
+                                                <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold text-sm ${!c.isRead ? 'bg-gradient-to-br from-purple-500 to-blue-500 text-white' : 'bg-[#252836] text-white/40'}`}>
+                                                    {c.name.charAt(0).toUpperCase()}
+                                                </div>
+                                                <div className="flex-1 min-w-0">
+                                                    <p className="text-white font-semibold text-sm truncate">{c.name}</p>
+                                                    <p className="text-white/30 text-xs truncate">{c.email}</p>
+                                                </div>
+                                                <StatusBadge status={c.status} />
+                                                <span className="text-white/25 text-xs hidden md:block">{timeAgo(c.created_at)}</span>
+                                            </div>
+                                        ))}
+                                        <div className="px-6 py-3 border-t border-[#252836]">
+                                            <button onClick={() => navigate('/x7k9m2p4q/contacts')} className="w-full text-center text-purple-400 text-sm font-bold hover:text-purple-300 transition-colors">View All Clients →</button>
+                                        </div>
+                                    </div>
                                 </div>
-                            </div>
+                            )}
 
-                            {/* Recent Activity */}
-                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                                {/* Recent Contacts */}
-                                <div className="bg-black-100 p-5 md:p-6 rounded-2xl">
-                                    <div className="flex items-center justify-between mb-4">
-                                        <div className="flex items-center gap-2">
-                                            <Mail size={18} className="text-green-500" />
-                                            <h3 className="text-lg font-bold">Recent Inquiries</h3>
-                                        </div>
-                                        <button
-                                            onClick={() => navigate('/x7k9m2p4q/contacts')}
-                                            className="text-violet-400 text-sm hover:text-violet-300 flex items-center gap-1"
-                                        >
-                                            View All <ChevronRight size={16} />
-                                        </button>
+                            {/* ═══════ ANALYTICS ═══════ */}
+                            {activeTab === 'analytics' && (
+                                <div className="space-y-5">
+                                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+                                        {[
+                                            { label: 'Blogs', value: stats.blogs.total, gradient: 'from-purple-600 to-indigo-600' },
+                                            { label: 'Published', value: stats.blogs.published, gradient: 'from-emerald-500 to-green-600' },
+                                            { label: 'Featured', value: stats.blogs.featured, gradient: 'from-amber-500 to-yellow-600' },
+                                            { label: 'Reviews', value: stats.testimonials.total, gradient: 'from-cyan-500 to-teal-600' },
+                                            { label: 'Approved', value: stats.testimonials.approved, gradient: 'from-green-500 to-emerald-600' },
+                                            { label: 'Pending', value: stats.testimonials.pending, gradient: 'from-orange-500 to-red-500' },
+                                        ].map(({ label, value, gradient }) => (
+                                            <div key={label} className={`rounded-2xl p-4 bg-gradient-to-br ${gradient} shadow-lg`}>
+                                                <p className="text-2xl font-black text-white">{value}</p>
+                                                <p className="text-white/60 text-[10px] uppercase tracking-widest font-bold mt-1">{label}</p>
+                                            </div>
+                                        ))}
                                     </div>
-                                    {stats.recentContacts.length > 0 ? (
-                                        <div className="space-y-2">
-                                            {stats.recentContacts.map((contact) => (
-                                                <div
-                                                    key={contact.id}
-                                                    onClick={() => setSelectedContact(contact)}
-                                                    className="flex items-center gap-3 p-3 bg-tertiary/50 rounded-xl cursor-pointer hover:bg-tertiary transition-colors"
-                                                >
-                                                    <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${!contact.is_read ? 'bg-violet-600' : 'bg-gray-700'}`}>
-                                                        <span className="text-white font-bold text-sm">
-                                                            {contact.name.charAt(0).toUpperCase()}
-                                                        </span>
-                                                    </div>
-                                                    <div className="flex-1 min-w-0">
-                                                        <p className="font-medium truncate">{contact.name}</p>
-                                                        <p className="text-secondary text-xs truncate">{contact.service || 'General Inquiry'}</p>
-                                                    </div>
-                                                    <div className="flex items-center gap-2 flex-shrink-0">
-                                                        <span className="text-secondary text-xs">{formatTimeAgo(contact.created_at)}</span>
-                                                        <ChevronRight size={16} className="text-secondary" />
+                                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                                        <div className="bg-[#1a1d2e] rounded-2xl p-6 border border-[#252836]">
+                                            <div className="flex items-center gap-3 mb-6">
+                                                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-pink-500 to-purple-600 flex items-center justify-center shadow-md">
+                                                    <BarChart3 size={18} className="text-white" />
+                                                </div>
+                                                <h3 className="text-white font-bold text-lg">Service Demand</h3>
+                                            </div>
+                                            {Object.keys(stats.contacts.serviceBreakdown).length > 0 ? (
+                                                <div className="space-y-4">
+                                                    {Object.entries(stats.contacts.serviceBreakdown).sort(([, a], [, b]) => b - a).map(([svc, count], i) => {
+                                                        const pct = Math.round((count / stats.contacts.total) * 100);
+                                                        const grads = ['from-purple-500 to-blue-500', 'from-cyan-500 to-teal-500', 'from-orange-500 to-pink-500', 'from-emerald-500 to-green-500'];
+                                                        const colors = ['text-purple-400', 'text-cyan-400', 'text-orange-400', 'text-emerald-400'];
+                                                        return (
+                                                            <div key={svc}>
+                                                                <div className="flex justify-between text-sm mb-2">
+                                                                    <span className="text-white/50 truncate">{svc}</span>
+                                                                    <span className={`font-bold ${colors[i % colors.length]}`}>{count}</span>
+                                                                </div>
+                                                                <div className="h-3 bg-[#252836] rounded-full overflow-hidden">
+                                                                    <div className={`h-full bg-gradient-to-r ${grads[i % grads.length]} rounded-full`} style={{ width: `${pct}%` }} />
+                                                                </div>
+                                                            </div>
+                                                        );
+                                                    })}
+                                                </div>
+                                            ) : <p className="text-white/20 text-center py-8">No data</p>}
+                                        </div>
+
+                                        <div className="bg-[#1a1d2e] rounded-2xl p-6 border border-[#252836]">
+                                            <div className="flex items-center gap-3 mb-6">
+                                                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-md">
+                                                    <PieChart size={18} className="text-white" />
+                                                </div>
+                                                <h3 className="text-white font-bold text-lg">Revenue</h3>
+                                            </div>
+                                            <div className="flex items-center gap-6">
+                                                <div className="relative w-28 h-28 flex-shrink-0">
+                                                    <svg className="w-full h-full -rotate-90" viewBox="0 0 36 36">
+                                                        <circle cx="18" cy="18" r="14" fill="none" stroke="#252836" strokeWidth="4" />
+                                                        <circle cx="18" cy="18" r="14" fill="none" strokeWidth="4" strokeLinecap="round"
+                                                            stroke="url(#grad1)"
+                                                            strokeDasharray={`${stats.contacts.totalQuoted > 0 ? Math.round((stats.contacts.totalPaid / stats.contacts.totalQuoted) * 88) : 0} 88`} />
+                                                        <defs><linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stopColor="#10b981" /><stop offset="100%" stopColor="#34d399" /></linearGradient></defs>
+                                                    </svg>
+                                                    <div className="absolute inset-0 flex flex-col items-center justify-center">
+                                                        <span className="text-lg font-black text-emerald-400">{stats.contacts.totalQuoted > 0 ? Math.round((stats.contacts.totalPaid / stats.contacts.totalQuoted) * 100) : 0}%</span>
+                                                        <span className="text-[8px] text-white/30 uppercase font-bold tracking-wider">Collected</span>
                                                     </div>
                                                 </div>
-                                            ))}
-                                        </div>
-                                    ) : (
-                                        <p className="text-secondary text-center py-8">No inquiries yet</p>
-                                    )}
-                                </div>
-
-                                {/* Quick Stats */}
-                                <div className="bg-black-100 p-5 md:p-6 rounded-2xl">
-                                    <div className="flex items-center gap-2 mb-4">
-                                        <TrendingUp size={18} className="text-violet-500" />
-                                        <h3 className="text-lg font-bold">Quick Stats</h3>
-                                    </div>
-                                    <div className="grid grid-cols-2 gap-3">
-                                        <div
-                                            onClick={() => navigate('/x7k9m2p4q/blogs')}
-                                            className="bg-tertiary/50 p-4 rounded-xl text-center cursor-pointer hover:bg-tertiary transition-colors"
-                                        >
-                                            <div className="flex items-center justify-center gap-1 mb-1">
-                                                <CheckCircle size={16} className="text-green-500" />
-                                                <span className="text-2xl font-bold">{stats.publishedBlogs}</span>
+                                                <div className="space-y-3 flex-1">
+                                                    <div className="flex justify-between"><span className="text-white/30 text-sm">Quoted</span><span className="text-white font-bold">{fmtCurrency(stats.contacts.totalQuoted)}</span></div>
+                                                    <div className="flex justify-between"><span className="text-white/30 text-sm">Collected</span><span className="text-emerald-400 font-bold">{fmtCurrency(stats.contacts.totalPaid)}</span></div>
+                                                    <div className="flex justify-between"><span className="text-white/30 text-sm">Remaining</span><span className="text-amber-400 font-bold">{fmtCurrency(stats.contacts.totalQuoted - stats.contacts.totalPaid)}</span></div>
+                                                </div>
                                             </div>
-                                            <p className="text-secondary text-xs">Published Blogs</p>
-                                        </div>
-                                        <div
-                                            onClick={() => navigate('/x7k9m2p4q/blogs')}
-                                            className="bg-tertiary/50 p-4 rounded-xl text-center cursor-pointer hover:bg-tertiary transition-colors"
-                                        >
-                                            <div className="flex items-center justify-center gap-1 mb-1">
-                                                <Star size={16} className="text-yellow-500" />
-                                                <span className="text-2xl font-bold">{stats.featuredBlogs}</span>
+                                            <div className="mt-6 pt-4 border-t border-[#252836] grid grid-cols-3 gap-3">
+                                                {[
+                                                    { label: 'Paid', v: stats.contacts.paymentBreakdown.paid || 0, gradient: 'from-emerald-500 to-green-600' },
+                                                    { label: 'Partial', v: stats.contacts.paymentBreakdown.partial || 0, gradient: 'from-amber-500 to-yellow-500' },
+                                                    { label: 'Unpaid', v: stats.contacts.paymentBreakdown.unpaid || 0, gradient: 'from-red-500 to-pink-500' },
+                                                ].map(({ label, v, gradient }) => (
+                                                    <div key={label} className={`text-center rounded-xl p-3 bg-gradient-to-br ${gradient}`}>
+                                                        <p className="text-xl font-black text-white">{v}</p>
+                                                        <p className="text-white/60 text-[9px] uppercase font-bold">{label}</p>
+                                                    </div>
+                                                ))}
                                             </div>
-                                            <p className="text-secondary text-xs">Featured Blogs</p>
-                                        </div>
-                                        <div
-                                            onClick={() => navigate('/x7k9m2p4q/testimonials')}
-                                            className="bg-tertiary/50 p-4 rounded-xl text-center cursor-pointer hover:bg-tertiary transition-colors"
-                                        >
-                                            <div className="flex items-center justify-center gap-1 mb-1">
-                                                <CheckCircle size={16} className="text-green-500" />
-                                                <span className="text-2xl font-bold">{stats.approvedTestimonials}</span>
-                                            </div>
-                                            <p className="text-secondary text-xs">Approved Reviews</p>
-                                        </div>
-                                        <div
-                                            onClick={() => navigate('/x7k9m2p4q/testimonials')}
-                                            className="bg-tertiary/50 p-4 rounded-xl text-center cursor-pointer hover:bg-tertiary transition-colors"
-                                        >
-                                            <div className="flex items-center justify-center gap-1 mb-1">
-                                                <Clock size={16} className="text-yellow-500" />
-                                                <span className="text-2xl font-bold">{stats.pendingTestimonials}</span>
-                                            </div>
-                                            <p className="text-secondary text-xs">Pending Reviews</p>
                                         </div>
                                     </div>
                                 </div>
-                            </div>
+                            )}
+                        </>
+                    ) : (
+                        <div className="text-center py-24">
+                            <AlertCircle size={32} className="mx-auto text-red-400/50 mb-3" />
+                            <p className="text-white/30 text-sm mb-4">Failed to load dashboard</p>
+                            <button onClick={fetchStats} className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-purple-600 to-blue-600 text-white text-sm font-bold hover:from-purple-500 hover:to-blue-500 shadow-lg shadow-purple-500/20 transition-all">Retry</button>
                         </div>
                     )}
                 </div>
             </div>
 
-            {/* Contact Quick View Modal */}
+            {/* Modal */}
             {selectedContact && (
                 <>
-                    <div
-                        className="fixed inset-0 bg-black/80 z-50 backdrop-blur-sm"
-                        onClick={() => setSelectedContact(null)}
-                    />
-                    <div className="fixed inset-4 md:inset-auto md:top-1/2 md:left-1/2 md:-translate-x-1/2 md:-translate-y-1/2 z-50 bg-tertiary rounded-2xl md:w-full md:max-w-lg flex flex-col max-h-[calc(100vh-32px)] overflow-hidden shadow-2xl">
-                        {/* Header */}
-                        <div className="flex items-center justify-between p-5 border-b border-gray-700 bg-black-100">
-                            <div className="flex items-center gap-4">
-                                <div className="w-12 h-12 bg-violet-600 rounded-full flex items-center justify-center">
-                                    <span className="text-white font-bold text-lg">
-                                        {selectedContact.name.charAt(0).toUpperCase()}
-                                    </span>
-                                </div>
+                    <div className="fixed inset-0 bg-black/70 z-50 backdrop-blur-sm" onClick={() => setSelectedContact(null)} />
+                    <div className="fixed inset-4 md:inset-auto md:top-1/2 md:left-1/2 md:-translate-x-1/2 md:-translate-y-1/2 z-50 bg-[#1a1d2e] rounded-2xl md:w-full md:max-w-md flex flex-col max-h-[calc(100vh-32px)] overflow-hidden border border-[#252836] shadow-2xl">
+                        <div className="flex items-center justify-between px-5 py-4 border-b border-[#252836]">
+                            <div className="flex items-center gap-3">
+                                <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center text-white font-bold">{selectedContact.name.charAt(0).toUpperCase()}</div>
                                 <div>
-                                    <h2 className="text-xl font-bold text-white">{selectedContact.name}</h2>
-                                    <p className="text-secondary text-sm">{formatDate(selectedContact.created_at)}</p>
+                                    <h2 className="text-white font-bold">{selectedContact.name}</h2>
+                                    <StatusBadge status={selectedContact.status} />
                                 </div>
                             </div>
-                            <button
-                                onClick={() => setSelectedContact(null)}
-                                className="p-2 text-secondary hover:text-white hover:bg-white/10 rounded-lg transition-colors"
-                            >
-                                <X size={24} />
-                            </button>
+                            <button onClick={() => setSelectedContact(null)} className="p-2 text-white/30 hover:text-white hover:bg-[#252836] rounded-lg transition-all"><X size={16} /></button>
                         </div>
-
-                        {/* Content */}
-                        <div className="flex-1 overflow-y-auto p-5 space-y-4">
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                <div className="bg-black-100 p-4 rounded-xl">
-                                    <div className="flex items-center gap-2 text-secondary text-sm mb-1">
-                                        <Mail size={14} />
-                                        <span>Email</span>
+                        <div className="flex-1 overflow-y-auto p-5 space-y-3">
+                            <div className="grid grid-cols-2 gap-3">
+                                {[{ l: 'Email', v: selectedContact.email }, { l: 'Phone', v: selectedContact.mobile || 'N/A' }, selectedContact.subject && { l: 'Service', v: selectedContact.subject }, selectedContact.budget && { l: 'Budget', v: selectedContact.budget }].filter(Boolean).map(x => (
+                                    <div key={x.l} className="bg-[#252836] rounded-xl p-3">
+                                        <p className="text-white/30 text-[9px] uppercase tracking-widest font-bold mb-1">{x.l}</p>
+                                        <p className="text-white/80 text-sm font-medium break-all">{x.v}</p>
                                     </div>
-                                    <p className="text-white font-medium break-all text-sm">{selectedContact.email}</p>
-                                </div>
-                                <div className="bg-black-100 p-4 rounded-xl">
-                                    <div className="flex items-center gap-2 text-secondary text-sm mb-1">
-                                        <Phone size={14} />
-                                        <span>Phone</span>
-                                    </div>
-                                    <p className="text-white font-medium">{selectedContact.mobile || 'Not provided'}</p>
-                                </div>
-                                {selectedContact.service && (
-                                    <div className="bg-black-100 p-4 rounded-xl">
-                                        <div className="flex items-center gap-2 text-secondary text-sm mb-1">
-                                            <Briefcase size={14} />
-                                            <span>Service</span>
-                                        </div>
-                                        <p className="text-white font-medium">{selectedContact.service}</p>
-                                    </div>
-                                )}
-                                {selectedContact.budget && selectedContact.budget !== 'Not Specified' && (
-                                    <div className="bg-black-100 p-4 rounded-xl">
-                                        <div className="flex items-center gap-2 text-secondary text-sm mb-1">
-                                            <IndianRupee size={14} />
-                                            <span>Budget</span>
-                                        </div>
-                                        <p className="text-green-400 font-bold">{selectedContact.budget}</p>
-                                    </div>
-                                )}
+                                ))}
                             </div>
-
-                            <div className="bg-black-100 p-4 rounded-xl">
-                                <p className="text-secondary text-sm mb-2">Message</p>
-                                <p className="text-white whitespace-pre-wrap">{selectedContact.message}</p>
+                            <div className="bg-[#252836] rounded-xl p-4">
+                                <p className="text-white/30 text-[9px] uppercase tracking-widest font-bold mb-2">Message</p>
+                                <p className="text-white/60 text-sm leading-relaxed">{selectedContact.message}</p>
                             </div>
-
-                            {/* Quick Reply */}
-                            <div className="flex flex-col sm:flex-row gap-3">
-                                {selectedContact.mobile && (
-                                    <button
-                                        onClick={() => openWhatsApp(selectedContact.mobile)}
-                                        className="flex-1 flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 py-3 px-4 rounded-xl font-bold transition-all"
-                                    >
-                                        <MessageCircle size={20} />
-                                        WhatsApp
-                                    </button>
-                                )}
-                                <button
-                                    onClick={() => openEmail(selectedContact.email, selectedContact.name)}
-                                    className="flex-1 flex items-center justify-center gap-2 bg-gradient-to-r from-violet-600 to-blue-600 hover:from-violet-700 hover:to-blue-700 py-3 px-4 rounded-xl font-bold transition-all"
-                                >
-                                    <Mail size={20} />
-                                    Email Reply
-                                </button>
+                            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                                {selectedContact.mobile && (<>
+                                    <button onClick={() => openWhatsApp(selectedContact.mobile)} className="flex items-center justify-center gap-2 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-green-600 text-white text-xs font-bold shadow-md shadow-emerald-500/20 hover:shadow-emerald-500/30 transition-all"><MessageCircle size={14} /> WhatsApp</button>
+                                    <button onClick={() => window.location.href = `tel:${selectedContact.mobile}`} className="flex items-center justify-center gap-2 py-2.5 rounded-xl bg-gradient-to-r from-blue-500 to-cyan-500 text-white text-xs font-bold shadow-md shadow-blue-500/20 hover:shadow-blue-500/30 transition-all"><Phone size={14} /> Call</button>
+                                </>)}
+                                <button onClick={() => openEmail(selectedContact.email, selectedContact.name)} className="flex items-center justify-center gap-2 py-2.5 rounded-xl bg-gradient-to-r from-purple-500 to-indigo-600 text-white text-xs font-bold shadow-md shadow-purple-500/20 hover:shadow-purple-500/30 transition-all col-span-2 sm:col-span-1"><Mail size={14} /> Email</button>
                             </div>
                         </div>
-
-                        {/* Footer */}
-                        <div className="p-4 border-t border-gray-700 bg-black-100">
-                            <button
-                                onClick={() => {
-                                    setSelectedContact(null);
-                                    navigate('/x7k9m2p4q/contacts');
-                                }}
-                                className="w-full py-3 bg-tertiary hover:bg-tertiary/80 rounded-xl font-medium transition-colors flex items-center justify-center gap-2"
-                            >
-                                View All Messages <ChevronRight size={18} />
+                        <div className="p-4 border-t border-[#252836]">
+                            <button onClick={() => { setSelectedContact(null); navigate('/x7k9m2p4q/contacts'); }}
+                                className="w-full py-2.5 rounded-xl bg-gradient-to-r from-purple-600 to-blue-600 text-white text-sm font-bold shadow-lg shadow-purple-500/20 hover:shadow-purple-500/30 transition-all">
+                                View Full Details →
                             </button>
                         </div>
                     </div>

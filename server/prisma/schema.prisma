@@ -44,13 +44,20 @@ model Testimonial {
 }
 
 model ContactMessage {
-  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  name       String
-  email      String
-  subject    String?
-  message    String
-  isRead     Boolean  @default(false)
-  budget     String?
-  created_at DateTime @default(now())
-  mobile     String?
+  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name          String
+  email         String
+  subject       String?
+  message       String
+  isRead        Boolean  @default(false)
+  budget        String?
+  created_at    DateTime @default(now())
+  mobile        String?
+  status        String   @default("pending")
+  priority      String   @default("medium")
+  notes         String?
+  quotedPrice   String?
+  paidAmount    String?
+  paymentStatus String   @default("unpaid")
+  updated_at    DateTime @default(now()) @updatedAt
 }

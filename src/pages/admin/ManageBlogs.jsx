@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import Sidebar from "../../components/admin/Sidebar";
 import { AuthContext } from "../../context/AuthContext";
 import API_BASE_URL from "../../config";
 import RichTextEditor from "../../components/admin/RichTextEditor";
 
 import { uploadToCloudinary } from "../../lib/cloudinary/service";
-import { Pencil, Trash2, Eye, EyeOff, Star, Plus, X, ChevronDown, ChevronUp, Menu, ArrowLeft } from "lucide-react";
+import { Pencil, Trash2, Eye, EyeOff, Star, Plus, X, ChevronDown, ChevronUp, Menu, ArrowLeft, Search, ArrowUpDown } from "lucide-react";
 
 const ManageBlogs = () => {
     const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -15,6 +15,26 @@ const ManageBlogs = () => {
     const [saving, setSaving] = useState(false);
     const [editingBlog, setEditingBlog] = useState(null);
     const [expandedBlog, setExpandedBlog] = useState(null);
+    const [blogSearch, setBlogSearch] = useState('');
+    const [blogFilter, setBlogFilter] = useState('all');
+    const [blogSort, setBlogSort] = useState('newest');
+    const [showBlogSort, setShowBlogSort] = useState(false);
+
+    const filteredBlogs = useMemo(() => {
+        let result = [...blogs];
+        if (blogSearch) {
+            const q = blogSearch.toLowerCase();
+            result = result.filter(b => b.title.toLowerCase().includes(q) || b.category?.toLowerCase().includes(q) || b.tags?.some(t => t.toLowerCase().includes(q)));
+        }
+        if (blogFilter === 'published') result = result.filter(b => b.published);
+        else if (blogFilter === 'draft') result = result.filter(b => !b.published);
+        else if (blogFilter === 'featured') result = result.filter(b => b.featured);
+        if (blogSort === 'newest') result.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+        else if (blogSort === 'oldest') result.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+        else if (blogSort === 'title_az') result.sort((a, b) => a.title.localeCompare(b.title));
+        else if (blogSort === 'title_za') result.sort((a, b) => b.title.localeCompare(a.title));
+        return result;
+    }, [blogs, blogSearch, blogFilter, blogSort]);
 
     const [form, setForm] = useState({
         title: '',
@@ -254,12 +274,12 @@ const ManageBlogs = () => {
     };
 
     return (
-        <div className="flex bg-primary min-h-screen">
+        <div className="flex min-h-screen bg-[#0f1117]">
             <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
             <div className="flex-1 md:ml-64 min-h-screen">
                 {/* Mobile Header */}
-                <div className="md:hidden flex items-center gap-4 p-4 bg-tertiary sticky top-0 z-30">
+                <div className="md:hidden flex items-center gap-4 p-4 bg-[#161822] border-b border-[#252836] sticky top-0 z-30">
                     {view === 'list' ? (
                         <button
                             onClick={() => setSidebarOpen(true)}
@@ -287,23 +307,22 @@ const ManageBlogs = () => {
                 </div>
 
                 {/* Content Area */}
-                <div className="p-4 md:p-10 text-white">
+                <div className="p-4 md:p-6 xl:p-8 text-white">
                     {/* Desktop Header */}
-                    <div className="hidden md:flex justify-between items-center mb-8">
-                        <h1 className="text-4xl font-bold">{getPageTitle()}</h1>
+                    <div className="hidden md:flex justify-between items-center mb-6">
+                        <div>
+                            <h1 className="text-2xl font-bold tracking-tight text-white/90">{getPageTitle()}</h1>
+                            {view === 'list' && <p className="text-white/30 text-xs mt-0.5">{blogs.length} total · {blogs.filter(b => b.published).length} published</p>}
+                        </div>
                         {view === 'list' ? (
-                            <button
-                                onClick={handleCreateNew}
-                                className="flex items-center gap-2 bg-green-600 hover:bg-green-700 py-3 px-6 rounded-lg font-bold transition-colors"
-                            >
-                                <Plus size={20} /> Create New Blog
+                            <button onClick={handleCreateNew}
+                                className="flex items-center gap-2 bg-violet-500/15 hover:bg-violet-500/25 border border-violet-500/25 text-violet-300 py-2.5 px-5 rounded-xl font-semibold text-sm transition-all">
+                                <Plus size={16} /> New Blog
                             </button>
                         ) : (
-                            <button
-                                onClick={handleCancel}
-                                className="flex items-center gap-2 bg-gray-600 hover:bg-gray-700 py-3 px-6 rounded-lg font-bold transition-colors"
-                            >
-                                <X size={20} /> Cancel
+                            <button onClick={handleCancel}
+                                className="flex items-center gap-2 bg-white/5 hover:bg-white/8 border border-white/10 text-white/50 py-2.5 px-5 rounded-xl font-semibold text-sm transition-all">
+                                <X size={16} /> Cancel
                             </button>
                         )}
                     </div>
@@ -311,20 +330,53 @@ const ManageBlogs = () => {
                     {/* LIST VIEW */}
                     {view === 'list' && (
                         <div className="space-y-4">
-                            {loading ? (
-                                <p>Loading blogs...</p>
-                            ) : blogs.length === 0 ? (
-                                <div className="text-center py-10 md:py-20 text-secondary">
-                                    <p className="text-lg md:text-xl mb-4">No blogs yet!</p>
-                                    <button
-                                        onClick={handleCreateNew}
-                                        className="bg-violet-600 hover:bg-violet-700 py-3 px-6 rounded-lg font-bold"
-                                    >
-                                        Create Your First Blog
+                            {/* Search + Sort */}
+                            <div className="flex flex-col sm:flex-row gap-3">
+                                <div className="relative flex-1">
+                                    <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-white/30" />
+                                    <input type="text" placeholder="Search by title, category, tags..." value={blogSearch} onChange={(e) => setBlogSearch(e.target.value)}
+                                        className="w-full bg-[#1a1d2e] text-white text-sm py-3 pl-11 pr-4 rounded-xl border border-[#252836] focus:border-purple-500/50 outline-none placeholder:text-white/25 transition-all" />
+                                </div>
+                                <div className="relative">
+                                    <button onClick={() => setShowBlogSort(!showBlogSort)}
+                                        className="flex items-center gap-2 bg-[#1a1d2e] border border-[#252836] px-4 py-3 rounded-xl text-sm text-white/50 hover:text-white/80 hover:border-[#353849] transition-all whitespace-nowrap">
+                                        <ArrowUpDown size={14} />
+                                        {{ newest: 'Newest', oldest: 'Oldest', title_az: 'A→Z', title_za: 'Z→A' }[blogSort]}
+                                        <ChevronDown size={14} />
                                     </button>
+                                    {showBlogSort && (
+                                        <>
+                                            <div className="fixed inset-0 z-30" onClick={() => setShowBlogSort(false)} />
+                                            <div className="absolute right-0 top-full mt-2 w-44 bg-[#1a1d2e] border border-[#252836] rounded-xl shadow-2xl z-40 py-2">
+                                                {[{ v: 'newest', l: 'Newest First' }, { v: 'oldest', l: 'Oldest First' }, { v: 'title_az', l: 'Title A→Z' }, { v: 'title_za', l: 'Title Z→A' }].map(o => (
+                                                    <button key={o.v} onClick={() => { setBlogSort(o.v); setShowBlogSort(false); }}
+                                                        className={`w-full text-left px-4 py-2.5 text-sm ${blogSort === o.v ? 'text-purple-400 bg-purple-500/10 font-bold' : 'text-white/50 hover:text-white hover:bg-[#252836]'}`}>{o.l}</button>
+                                                ))}
+                                            </div>
+                                        </>
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* Filter Tabs */}
+                            <div className="flex gap-2 overflow-x-auto pb-1">
+                                {[{ v: 'all', l: 'All', c: blogs.length }, { v: 'published', l: 'Published', c: blogs.filter(b => b.published).length }, { v: 'draft', l: 'Draft', c: blogs.filter(b => !b.published).length }, { v: 'featured', l: 'Featured', c: blogs.filter(b => b.featured).length }].map(f => (
+                                    <button key={f.v} onClick={() => setBlogFilter(f.v)}
+                                        className={`flex-shrink-0 px-5 py-2.5 rounded-xl text-sm font-bold transition-all ${blogFilter === f.v ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white shadow-lg shadow-purple-500/20' : 'bg-[#1a1d2e] text-white/40 border border-[#252836] hover:text-white/70'}`}>
+                                        {f.l} <span className="ml-1 opacity-60">({f.c})</span>
+                                    </button>
+                                ))}
+                            </div>
+
+                            {loading ? (
+                                <div className="flex items-center justify-center py-20"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-violet-500"></div></div>
+                            ) : filteredBlogs.length === 0 ? (
+                                <div className="text-center py-10 md:py-20 text-secondary">
+                                    <p className="text-lg md:text-xl mb-4">{blogSearch || blogFilter !== 'all' ? 'No matching blogs found' : 'No blogs yet!'}</p>
+                                    {blogFilter === 'all' && !blogSearch && <button onClick={handleCreateNew} className="bg-violet-600 hover:bg-violet-700 py-3 px-6 rounded-lg font-bold">Create Your First Blog</button>}
                                 </div>
                             ) : (
-                                blogs.map((blog) => (
+                                filteredBlogs.map((blog) => (
                                     <div key={blog.id} className="bg-black-100 rounded-2xl overflow-hidden">
                                         {/* Blog Header */}
                                         <div

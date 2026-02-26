@@ -1,7 +1,7 @@
 import React, { useRef, useState, useCallback } from "react";
 import { m as motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
-import { FaEnvelope, FaMapMarkerAlt, FaWhatsapp } from 'react-icons/fa';
+import { FaEnvelope, FaMapMarkerAlt, FaWhatsapp, FaPhoneAlt } from 'react-icons/fa';
 import { Send, Loader2, CheckCircle2, X } from "lucide-react";
 
 import { styles } from "../styles";
@@ -148,7 +148,11 @@ const Contact = () => {
         },
         {
             title: "WhatsApp", content: "Chat with me directly", icon: FaWhatsapp,
-            link: "https://wa.me/918252000000", color: "from-green-500 to-emerald-600"
+            link: "https://wa.me/919801834437", color: "from-green-500 to-emerald-600"
+        },
+        {
+            title: "Call", content: "+91 98018 34437", icon: FaPhoneAlt,
+            link: "tel:+919801834437", color: "from-blue-500 to-indigo-600"
         },
         {
             title: "Location", content: "Remote / Global", icon: FaMapMarkerAlt,
