@@ -474,6 +474,59 @@ app.delete('/api/seo/:id', authMiddleware, async (req, res) => {
     }
 });
 
+// --- SITEMAP & ROBOTS ---
+app.get('/sitemap.xml', async (req, res) => {
+    try {
+        const records = await prisma.sEOMetadata.findMany({
+            where: {
+                robots: {
+                    contains: 'index'
+                }
+            },
+            orderBy: { lastUpdated: 'desc' }
+        });
+
+        // Current base URL (can be customized via env)
+        const baseUrl = process.env.VITE_CLIENT_URL || 'https://abhimanyu-raj-cse.vercel.app';
+
+        let xml = '<?xml version="1.0" encoding="UTF-8"?>\n';
+        xml += '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n';
+
+        records.forEach(record => {
+            // Clean up the route (handle root route)
+            let path = record.pageRoute === '/' ? '' : record.pageRoute;
+            // Prevent dynamic routes like [slug] from appearing directly
+            if (path.includes('[')) return;
+
+            xml += '  <url>\n';
+            xml += `    <loc>${baseUrl}${path}</loc>\n`;
+            xml += `    <lastmod>${new Date(record.lastUpdated).toISOString()}</lastmod>\n`;
+            xml += `    <changefreq>weekly</changefreq>\n`;
+            xml += `    <priority>${path === '' ? '1.0' : '0.8'}</priority>\n`;
+            xml += '  </url>\n';
+        });
+
+        xml += '</urlset>';
+
+        res.header('Content-Type', 'application/xml');
+        res.status(200).send(xml);
+    } catch (error) {
+        console.error('Sitemap generation error:', error);
+        res.status(500).send('Error generating sitemap');
+    }
+});
+
+app.get('/robots.txt', (req, res) => {
+    const baseUrl = process.env.VITE_CLIENT_URL || 'https://abhimanyu-raj-cse.vercel.app';
+    const robotsTxt = `User-agent: *
+Allow: /
+
+Sitemap: ${baseUrl}/sitemap.xml
+`;
+    res.header('Content-Type', 'text/plain');
+    res.status(200).send(robotsTxt);
+});
+
 // --- PROJECT ROUTES ---
 
 // GET /api/projects/featured – top 3 featured projects sorted by priorityOrder.

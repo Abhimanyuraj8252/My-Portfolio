@@ -147,10 +147,17 @@ const SEOManager = () => {
   const handleAddKeyword = (e) => {
     if (e.key === 'Enter' && keywordInput.trim()) {
       e.preventDefault();
-      if (!formData.keywords.includes(keywordInput.trim())) {
+      // Split by commas for bulk adding
+      const newKeywords = keywordInput
+        .split(',')
+        .map(kw => kw.trim())
+        .filter(kw => kw.length > 0)
+        .filter(kw => !formData.keywords.includes(kw));
+
+      if (newKeywords.length > 0) {
         setFormData(prev => ({
           ...prev,
-          keywords: [...prev.keywords, keywordInput.trim()]
+          keywords: [...prev.keywords, ...newKeywords]
         }));
       }
       setKeywordInput('');
@@ -543,7 +550,12 @@ const SEOManager = () => {
                           </div>
 
                           <div>
-                            <label className="block text-sm font-medium text-gray-300 mb-1">Keywords</label>
+                            <div className="flex justify-between items-end mb-1">
+                              <label className="block text-sm font-medium text-gray-300">Keywords</label>
+                              <span className="text-xs font-semibold text-indigo-400 bg-indigo-500/10 px-2 py-0.5 rounded-full">
+                                {formData.keywords.length} keywords
+                              </span>
+                            </div>
                             <div className="bg-black/20 border border-white/10 rounded-lg p-2 focus-within:border-indigo-500 focus-within:ring-1 focus-within:ring-indigo-500 transition-all">
                               <div className="flex flex-wrap gap-2 mb-2">
                                 {formData.keywords.map((kw, idx) => (
