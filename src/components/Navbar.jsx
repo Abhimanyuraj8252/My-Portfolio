@@ -47,7 +47,7 @@ const MobileMenu = ({ toggle, setToggle, active, setActive, handleMobileNavClick
                 }}
             >
                 <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                    {navLinks.filter(nav => nav.id !== 'blog').map((nav) => (
+                    {navLinks.filter(nav => nav.id !== 'blog' && nav.id !== 'contact').map((nav) => (
                         <li key={nav.id}>
                             <a
                                 href={`/#${nav.id}`}
@@ -77,6 +77,34 @@ const MobileMenu = ({ toggle, setToggle, active, setActive, handleMobileNavClick
                     ))}
                     <li>
                         <a
+                            href="/contact"
+                            onClick={(e) => { e.preventDefault(); setToggle(false); navigate('/contact'); }}
+                            style={{ display: 'flex', alignItems: 'center', width: '100%', padding: '12px 16px', minHeight: '48px', fontSize: '16px', fontWeight: 500, color: '#aaa6c3', borderRadius: '8px', textDecoration: 'none', cursor: 'pointer', WebkitTapHighlightColor: 'rgba(255,255,255,0.1)' }}
+                        >
+                            Contact
+                        </a>
+                    </li>
+                    <li>
+                        <a
+                            href="/services"
+                            onClick={(e) => {
+                                e.preventDefault();
+                                setToggle(false);
+                                navigate('/services');
+                            }}
+                            style={{
+                                display: 'flex', alignItems: 'center', width: '100%',
+                                padding: '12px 16px', minHeight: '48px', fontSize: '16px',
+                                fontWeight: 500, color: '#aaa6c3', borderRadius: '8px',
+                                textDecoration: 'none', cursor: 'pointer',
+                                WebkitTapHighlightColor: 'rgba(255,255,255,0.1)',
+                            }}
+                        >
+                            Services
+                        </a>
+                    </li>
+                    <li>
+                        <a
                             href="/blog"
                             onClick={(e) => {
                                 e.preventDefault();
@@ -84,17 +112,10 @@ const MobileMenu = ({ toggle, setToggle, active, setActive, handleMobileNavClick
                                 navigate('/blog');
                             }}
                             style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                width: '100%',
-                                padding: '12px 16px',
-                                minHeight: '48px',
-                                fontSize: '16px',
-                                fontWeight: 500,
-                                color: '#aaa6c3',
-                                borderRadius: '8px',
-                                textDecoration: 'none',
-                                cursor: 'pointer',
+                                display: 'flex', alignItems: 'center', width: '100%',
+                                padding: '12px 16px', minHeight: '48px', fontSize: '16px',
+                                fontWeight: 500, color: '#aaa6c3', borderRadius: '8px',
+                                textDecoration: 'none', cursor: 'pointer',
                                 WebkitTapHighlightColor: 'rgba(255,255,255,0.1)',
                             }}
                         >
@@ -259,7 +280,7 @@ const Navbar = () => {
 
                     {/* Desktop Navigation */}
                     <ul className='list-none hidden sm:flex flex-row gap-10'>
-                        {navLinks.filter(nav => nav.id !== 'blog').map((nav) => (
+                        {navLinks.filter(nav => nav.id !== 'blog' && nav.id !== 'contact').map((nav) => (
                             <li
                                 key={nav.id}
                                 className={`${active === nav.title ? "text-white" : "text-secondary"
@@ -269,6 +290,12 @@ const Navbar = () => {
                                 <span>{nav.title}</span>
                             </li>
                         ))}
+                        <li className="text-secondary hover:text-white text-[18px] font-medium cursor-pointer transition-colors duration-200">
+                            <Link to="/contact">Contact</Link>
+                        </li>
+                        <li className="text-secondary hover:text-white text-[18px] font-medium cursor-pointer transition-colors duration-200">
+                            <Link to="/services">Services</Link>
+                        </li>
                         <li className="text-secondary hover:text-white text-[18px] font-medium cursor-pointer transition-colors duration-200">
                             <Link to="/blog">Blog</Link>
                         </li>

@@ -2,7 +2,7 @@ import React, { useRef, useState, useCallback, useEffect } from "react";
 import { m as motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 import { FaEnvelope, FaMapMarkerAlt, FaWhatsapp, FaPhoneAlt } from 'react-icons/fa';
-import { Send, Loader2, CheckCircle2, X } from "lucide-react";
+import { Send, Loader2, CheckCircle2, X, ChevronDown } from "lucide-react";
 
 import { styles } from "../styles";
 import { SectionWrapper } from "../hoc";
@@ -49,6 +49,69 @@ const ThankYouModal = React.memo(({ isOpen, onClose }) => {
         </AnimatePresence>
     );
 });
+
+// ====================== CUSTOM DROPDOWN ======================
+const CustomDropdown = ({ label, value, options, onChange, placeholder = "Select a Service" }) => {
+    const [isOpen, setIsOpen] = useState(false);
+    const dropRef = useRef(null);
+
+    useEffect(() => {
+        const handleClickOutside = (e) => {
+            if (dropRef.current && !dropRef.current.contains(e.target)) {
+                setIsOpen(false);
+            }
+        };
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, []);
+
+    const inputClass = "w-full bg-[#111827] text-white text-sm sm:text-base py-3 sm:py-3.5 px-4 rounded-xl border border-white/5 focus:border-violet-500/50 outline-none transition-all duration-200 cursor-pointer flex items-center justify-between";
+
+    return (
+        <div className="relative flex-1" ref={dropRef}>
+            <label className="block text-white/50 text-xs uppercase tracking-widest mb-2">{label}</label>
+            <div
+                onClick={() => setIsOpen(!isOpen)}
+                className={`${inputClass} ${isOpen ? 'border-violet-500/50' : ''}`}
+            >
+                <span className={value ? "text-white" : "text-white/25"}>
+                    {value || placeholder}
+                </span>
+                <ChevronDown
+                    size={16}
+                    className={`text-white/30 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`}
+                />
+            </div>
+
+            <AnimatePresence>
+                {isOpen && (
+                    <motion.div
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: 10 }}
+                        className="absolute z-20 left-0 right-0 mt-2 bg-[#0d0b1e] border border-white/10 rounded-xl overflow-hidden shadow-2xl backdrop-blur-md max-h-60 overflow-y-auto"
+                        data-lenis-prevent
+                        onWheel={(e) => e.stopPropagation()}
+                    >
+                        {options.map((opt) => (
+                            <div
+                                key={opt}
+                                onClick={() => {
+                                    onChange(opt);
+                                    setIsOpen(false);
+                                }}
+                                className={`px-4 py-3 text-sm cursor-pointer transition-colors hover:bg-white/5 ${value === opt ? 'text-violet-400 bg-violet-400/5' : 'text-white/60'
+                                    }`}
+                            >
+                                {opt}
+                            </div>
+                        ))}
+                    </motion.div>
+                )}
+            </AnimatePresence>
+        </div>
+    );
+};
 
 // ====================== CONTACT CARD (Right Side) ======================
 const ContactCard = ({ icon: Icon, title, content, link, index, color }) => (
@@ -99,6 +162,24 @@ const Contact = () => {
     });
     const [loading, setLoading] = useState(false);
     const [showThankYou, setShowThankYou] = useState(false);
+    const [dbServices, setDbServices] = useState([]);
+
+    // Fetch services from database for dropdown
+    useEffect(() => {
+        const fetchServices = async () => {
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/services`);
+                if (res.ok) {
+                    const data = await res.json();
+                    const active = data.filter(s => s.status === "Active");
+                    setDbServices(active);
+                }
+            } catch {
+                // Fallback to static options if fetch fails
+            }
+        };
+        fetchServices();
+    }, []);
 
     const handleChange = useCallback((e) => {
         const { name, value } = e.target;
@@ -230,28 +311,20 @@ const Contact = () => {
 
                             {/* Row 2: Service + Budget */}
                             <div className="flex flex-col sm:flex-row gap-4">
-                                <div className="flex-1">
-                                    <label className="block text-white/50 text-xs uppercase tracking-widest mb-2">Service Needed</label>
-                                    <div className="relative">
-                                        <select name="service" value={form.service} onChange={handleChange}
-                                            className={`${inputClass} appearance-none cursor-pointer pr-10`}>
-                                            <option value="" disabled>Select a Service</option>
-                                            <option value="Website Development">Website Development</option>
-                                            <option value="WordPress Website">WordPress Website</option>
-                                            <option value="App Development">App Development</option>
-                                            <option value="SEO Optimization">SEO Optimization</option>
-                                            <option value="Bug Fixing">Bug Fixing</option>
-                                            <option value="Website Maintenance">Website Maintenance</option>
-                                            <option value="Content/Blog Writing">Content/Blog Writing</option>
-                                            <option value="Other">Other</option>
-                                        </select>
-                                        <div className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-white/30">
-                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                                            </svg>
-                                        </div>
-                                    </div>
-                                </div>
+                                <CustomDropdown
+                                    label="Service Needed"
+                                    value={form.service}
+                                    options={dbServices.length > 0
+                                        ? dbServices.map(svc => svc.title)
+                                        : [
+                                            "Web Development", "WordPress Website", "Shopify Store Development",
+                                            "Android App Development", "Backend Development", "Full Stack Development",
+                                            "UI/UX Design", "SEO Optimization", "Content & Blog Writing",
+                                            "Bug Fixing & Support", "Website Maintenance", "Other"
+                                        ]
+                                    }
+                                    onChange={(val) => setForm(prev => ({ ...prev, service: val }))}
+                                />
 
                                 <AnimatePresence>
                                     {form.service && (

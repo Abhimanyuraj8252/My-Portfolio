@@ -42,6 +42,9 @@ const TermsAndConditions = lazy(() => import("./pages/TermsAndConditions"));
 
 // Public Pages
 const TestimonialsPage = lazy(() => import("./pages/TestimonialsPage"));
+const ServicesPage = lazy(() => import("./pages/ServicesPage"));
+const ServiceDetail = lazy(() => import("./pages/ServiceDetail"));
+const ContactPage = lazy(() => import("./pages/ContactPage"));
 
 // Loading fallback
 const PageLoader = () => (
@@ -111,6 +114,9 @@ const App = () => {
                         <Route path="/blog" element={<Blogs />} />
                         <Route path="/blog/:slug" element={<BlogDetails />} />
                         <Route path="/testimonials" element={<TestimonialsPage />} />
+                        <Route path="/services" element={<ServicesPage />} />
+                        <Route path="/services/:id" element={<ServiceDetail />} />
+                        <Route path="/contact" element={<ContactPage />} />
 
                         {/* Admin Routes - Hidden URL for security */}
                         <Route path="/x7k9m2p4q/login" element={<Login />} />

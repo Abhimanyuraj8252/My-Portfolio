@@ -623,7 +623,12 @@ app.put('/api/settings', authMiddleware, async (req, res) => {
 // --- SERVICE ROUTES ---
 app.get('/api/services', async (req, res) => {
     try {
-        const services = await prisma.service.findMany({ orderBy: { createdAt: 'desc' } });
+        const services = await prisma.service.findMany({
+            orderBy: [
+                { priorityOrder: 'asc' },
+                { createdAt: 'desc' }
+            ]
+        });
         res.json(services);
     } catch (error) {
         res.status(500).json({ error: error.message });
@@ -644,7 +649,7 @@ app.post('/api/services', authMiddleware, async (req, res) => {
 
 app.put('/api/services/:id', authMiddleware, async (req, res) => {
     try {
-        const { title, description, price, features, deliveryTime, icon } = req.body;
+        const { title, description, price, features, deliveryTime, icon, status, priorityOrder } = req.body;
         const data = {};
         if (title !== undefined) data.title = title;
         if (description !== undefined) data.description = description;
@@ -652,6 +657,8 @@ app.put('/api/services/:id', authMiddleware, async (req, res) => {
         if (features !== undefined) data.features = features;
         if (deliveryTime !== undefined) data.deliveryTime = deliveryTime;
         if (icon !== undefined) data.icon = icon;
+        if (status !== undefined) data.status = status;
+        if (priorityOrder !== undefined) data.priorityOrder = parseInt(priorityOrder);
         const service = await prisma.service.update({ where: { id: req.params.id }, data });
         res.json(service);
     } catch (error) {
@@ -766,9 +773,9 @@ app.get('/api/analytics', authMiddleware, async (req, res) => {
 
         for (const record of traffic) {
             const dt = record.deviceType || {};
-            if (dt.Mobile)   deviceCounts.Mobile   += dt.Mobile;
-            if (dt.Desktop)  deviceCounts.Desktop  += dt.Desktop;
-            if (dt.Tablet)   deviceCounts.Tablet   += dt.Tablet;
+            if (dt.Mobile) deviceCounts.Mobile += dt.Mobile;
+            if (dt.Desktop) deviceCounts.Desktop += dt.Desktop;
+            if (dt.Tablet) deviceCounts.Tablet += dt.Tablet;
             if (dt.countries) {
                 for (const [country, n] of Object.entries(dt.countries)) {
                     countryCounts[country] = (countryCounts[country] || 0) + n;

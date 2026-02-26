@@ -11,15 +11,15 @@ import {
 
 // ── Icon map ────────────────────────────────────────────────────────────────
 const ICON_OPTIONS = [
-  { value: "Code",       label: "Code",       Icon: Code },
-  { value: "Globe",      label: "Web",        Icon: Globe },
-  { value: "Smartphone", label: "Mobile",     Icon: Smartphone },
-  { value: "Palette",    label: "Design",     Icon: Palette },
-  { value: "Database",   label: "Database",   Icon: Database },
-  { value: "Bot",        label: "AI/Bot",     Icon: Bot },
-  { value: "Layers",     label: "Full-Stack", Icon: Layers },
-  { value: "Shield",     label: "Security",   Icon: Shield },
-  { value: "Zap",        label: "Performance",Icon: Zap },
+  { value: "Code", label: "Code", Icon: Code },
+  { value: "Globe", label: "Web", Icon: Globe },
+  { value: "Smartphone", label: "Mobile", Icon: Smartphone },
+  { value: "Palette", label: "Design", Icon: Palette },
+  { value: "Database", label: "Database", Icon: Database },
+  { value: "Bot", label: "AI/Bot", Icon: Bot },
+  { value: "Layers", label: "Full-Stack", Icon: Layers },
+  { value: "Shield", label: "Security", Icon: Shield },
+  { value: "Zap", label: "Performance", Icon: Zap },
 ];
 
 const ICON_COMPONENT_MAP = { Code, Globe, Smartphone, Palette, Database, Bot, Layers, Shield, Zap };
@@ -153,8 +153,10 @@ const ServiceModal = ({ service, onClose, onSaved }) => {
       price: service.price,
       deliveryTime: service.deliveryTime,
       icon: service.icon || "Code",
+      status: service.status || "Active",
+      priorityOrder: service.priorityOrder ?? 0,
       features: service.features?.length ? [...service.features] : [""],
-    } : { ...EMPTY_FORM }
+    } : { ...EMPTY_FORM, status: "Active", priorityOrder: 0 }
   );
   const [saving, setSaving] = useState(false);
   const [iconOpen, setIconOpen] = useState(false);
@@ -238,11 +240,10 @@ const ServiceModal = ({ service, onClose, onSaved }) => {
                       key={value}
                       type="button"
                       onClick={() => { setField("icon", value); setIconOpen(false); }}
-                      className={`flex flex-col items-center gap-1.5 px-2 py-2.5 rounded-lg text-xs transition-all ${
-                        form.icon === value
-                          ? "bg-violet-500/20 border border-violet-500/40 text-violet-300"
-                          : "text-white/50 hover:text-white hover:bg-white/5"
-                      }`}
+                      className={`flex flex-col items-center gap-1.5 px-2 py-2.5 rounded-lg text-xs transition-all ${form.icon === value
+                        ? "bg-violet-500/20 border border-violet-500/40 text-violet-300"
+                        : "text-white/50 hover:text-white hover:bg-white/5"
+                        }`}
                     >
                       <Ic size={16} />
                       {label}
@@ -299,6 +300,33 @@ const ServiceModal = ({ service, onClose, onSaved }) => {
                 placeholder="7-10 days"
                 className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 focus:border-violet-500/50 focus:outline-none text-white text-sm placeholder-white/25 transition-colors"
               />
+            </div>
+          </div>
+
+          {/* Status + Priority Order */}
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="text-white/50 text-xs font-semibold uppercase tracking-wider mb-2 block">Status</label>
+              <select
+                value={form.status}
+                onChange={(e) => setField("status", e.target.value)}
+                className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 focus:border-violet-500/50 focus:outline-none text-white text-sm transition-colors"
+              >
+                <option value="Active">✅ Active (show on website)</option>
+                <option value="Inactive">🔴 Inactive (hidden)</option>
+              </select>
+            </div>
+            <div>
+              <label className="text-white/50 text-xs font-semibold uppercase tracking-wider mb-2 block">Order (Priority)</label>
+              <input
+                type="number"
+                value={form.priorityOrder}
+                onChange={(e) => setField("priorityOrder", e.target.value)}
+                placeholder="0"
+                min="0"
+                className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 focus:border-violet-500/50 focus:outline-none text-white font-mono text-sm placeholder-white/25 transition-colors"
+              />
+              <p className="text-white/30 text-[10px] mt-1">Lower = shown first on website</p>
             </div>
           </div>
 
