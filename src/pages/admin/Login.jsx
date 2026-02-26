@@ -46,7 +46,8 @@ const Login = () => {
                 navigate("/x7k9m2p4q/dashboard");
             }
         } catch (err) {
-            setError("An error occurred connecting to the server. Please try again.");
+            console.error("Login Error:", err);
+            setError("Cannot connect to server. Ensure the backend is running at " + (API_BASE_URL || window.location.origin) + ".");
         }
 
         setLoading(false);

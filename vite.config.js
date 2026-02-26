@@ -5,8 +5,16 @@ import react from '@vitejs/plugin-react'
 export default defineConfig({
   plugins: [react()],
   assetsInclude: ['**/*.usdz'],
+  server: {
+    proxy: {
+      '/api': {
+        target: 'http://localhost:5000',
+        changeOrigin: true,
+      }
+    }
+  },
   build: {
-    chunkSizeWarningLimit: 2000, // Increase chunk size warning limit to 2000 kB
+    chunkSizeWarningLimit: 2000, 
     rollupOptions: {
       output: {
         manualChunks: {

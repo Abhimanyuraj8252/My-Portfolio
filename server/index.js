@@ -1065,6 +1065,172 @@ app.get('/api/systemLogs', authMiddleware, async (req, res) => {
     }
 });
 
+// --- TRACKING SCRIPTS ROUTES ---
+app.get('/api/system/scripts', async (req, res) => {
+    try {
+        const scripts = await prisma.trackingScript.findMany({
+            orderBy: { createdAt: 'desc' }
+        });
+        res.json(scripts);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+app.post('/api/system/scripts', authMiddleware, async (req, res) => {
+    try {
+        const { provider, trackingId, customScript, isActive } = req.body;
+        const script = await prisma.trackingScript.create({
+            data: { provider, trackingId, customScript, isActive: isActive ?? true }
+        });
+        res.status(201).json(script);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+app.put('/api/system/scripts/:id', authMiddleware, async (req, res) => {
+    try {
+        const { provider, trackingId, customScript, isActive } = req.body;
+        const data = {};
+        if (provider !== undefined) data.provider = provider;
+        if (trackingId !== undefined) data.trackingId = trackingId;
+        if (customScript !== undefined) data.customScript = customScript;
+        if (isActive !== undefined) data.isActive = isActive;
+
+        const script = await prisma.trackingScript.update({
+            where: { id: req.params.id },
+            data
+        });
+        res.json(script);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+app.delete('/api/system/scripts/:id', authMiddleware, async (req, res) => {
+    try {
+        await prisma.trackingScript.delete({ where: { id: req.params.id } });
+        res.json({ message: 'Script deleted successfully' });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// --- DISPLAY WIDGETS ROUTES (Stealth Mode) ---
+
+// Unified Config Endpoint for Stealth
+app.get('/api/ui/layout-configs', async (req, res) => {
+    try {
+        const [scripts, widgets] = await Promise.all([
+            prisma.trackingScript.findMany({ where: { isActive: true }, orderBy: { createdAt: 'desc' } }),
+            prisma.displayWidget.findMany({ where: { isActive: true }, orderBy: { createdAt: 'desc' } })
+        ]);
+
+        const stealthWidgets = widgets.map(w => ({
+            blockId: w.id,
+            zone: w.zone,
+            sourceType: w.sourceType,
+            renderContent: w.renderContent,
+            pageRoute: w.pageRoute,
+            isActive: w.isActive
+        }));
+
+        res.json({ scripts, widgets: stealthWidgets });
+    } catch (error) {
+        // Return 200 OK with empty array to avoid crashing frontend due to AdBlocker Network/DB errors
+        console.error("Layout config fetch failed:", error.message);
+        res.status(200).json({ scripts: [], widgets: [] });
+    }
+});
+
+app.get('/api/layout/dynamic-blocks', async (req, res) => {
+    try {
+        const widgets = await prisma.displayWidget.findMany({
+            orderBy: { createdAt: 'desc' }
+        });
+
+        // Map UI-friendly response to conceal actual DB model if needed,
+        // but fields are generic enough now. We will map `id` to `blockId` to avoid generic parsing issues.
+        const stealthWidgets = widgets.map(w => ({
+            blockId: w.id,
+            zone: w.zone,
+            sourceType: w.sourceType,
+            renderContent: w.renderContent,
+            pageRoute: w.pageRoute,
+            isActive: w.isActive
+        }));
+
+        res.json(stealthWidgets);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+app.post('/api/layout/dynamic-blocks', authMiddleware, async (req, res) => {
+    try {
+        // Payload destructures generic terms
+        const { zone, sourceType, renderContent, pageRoute, isActive } = req.body;
+        const widget = await prisma.displayWidget.create({
+            data: {
+                zone,
+                sourceType,
+                renderContent,
+                pageRoute: pageRoute || '*',
+                isActive: isActive ?? true
+            }
+        });
+
+        res.status(201).json({
+            blockId: widget.id,
+            zone: widget.zone,
+            sourceType: widget.sourceType,
+            renderContent: widget.renderContent,
+            pageRoute: widget.pageRoute,
+            isActive: widget.isActive
+        });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+app.put('/api/layout/dynamic-blocks/:id', authMiddleware, async (req, res) => {
+    try {
+        const { zone, sourceType, renderContent, pageRoute, isActive } = req.body;
+        const data = {};
+        if (zone !== undefined) data.zone = zone;
+        if (sourceType !== undefined) data.sourceType = sourceType;
+        if (renderContent !== undefined) data.renderContent = renderContent;
+        if (pageRoute !== undefined) data.pageRoute = pageRoute;
+        if (isActive !== undefined) data.isActive = isActive;
+
+        const widget = await prisma.displayWidget.update({
+            where: { id: req.params.id },
+            data
+        });
+
+        res.json({
+            blockId: widget.id,
+            zone: widget.zone,
+            sourceType: widget.sourceType,
+            renderContent: widget.renderContent,
+            pageRoute: widget.pageRoute,
+            isActive: widget.isActive
+        });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+app.delete('/api/layout/dynamic-blocks/:id', authMiddleware, async (req, res) => {
+    try {
+        await prisma.displayWidget.delete({ where: { id: req.params.id } });
+        res.json({ message: 'Dynamic block removed successfully' });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
 if (process.env.NODE_ENV !== 'production') {
     app.listen(PORT, () => {
         console.log(`Server running on http://localhost:${PORT}`);

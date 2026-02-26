@@ -128,6 +128,7 @@ const Sidebar = ({ isOpen, onClose }) => {
     const navItems = [
         { path: "/x7k9m2p4q/dashboard", icon: LayoutDashboard, label: "Dashboard" },
         { path: "/x7k9m2p4q/analytics", icon: Activity, label: "Analytics" },
+        { path: "/x7k9m2p4q/tags-ads", icon: Activity, label: "Tags & Ads" },
         { path: "/x7k9m2p4q/subscribers", icon: Users, label: "Audience" },
         { path: "/x7k9m2p4q/projects", icon: FileText, label: "Projects" },
         { path: "/x7k9m2p4q/experience", icon: Activity, label: "Experience" },

@@ -190,3 +190,47 @@ model SystemLog {
   timestamp DateTime @default(now())
 }
 
+enum TrackProvider {
+  GOOGLE_ANALYTICS
+  META_PIXEL
+  TIKTOK_PIXEL
+  LINKEDIN_INSIGHT
+  TWITTER_PIXEL
+  CUSTOM
+}
+
+model TrackingScript {
+  id           String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  provider     TrackProvider
+  trackingId   String?       // e.g., G-XXXXX
+  customScript String?       // HTML/JS snippet
+  isActive     Boolean       @default(true)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+}
+
+enum WidgetZoneName {
+  HEADER
+  FOOTER
+  SIDEBAR
+  IN_CONTENT
+}
+
+enum WidgetSourceType {
+  GOOGLE_ADS
+  FACEBOOK_AUDIENCE_NETWORK
+  AMAZON_PUBLISHER_SERVICES
+  MEDIA_NET
+  CUSTOM
+}
+
+model DisplayWidget {
+  id               String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  zone             WidgetZoneName
+  sourceType       WidgetSourceType
+  renderContent    String           // HTML/JS code for the widget
+  pageRoute        String           @default("*") // e.g., '/blog' or '*'
+  isActive         Boolean          @default(true)
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+}

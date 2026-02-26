@@ -29,6 +29,7 @@ const ExperienceDashboard = lazy(() => import("./pages/admin/ExperienceDashboard
 const TechStackDashboard = lazy(() => import("./pages/admin/TechStackDashboard"));
 const SettingsDashboard = lazy(() => import("./pages/admin/SettingsDashboard"));
 const AnalyticsHub = lazy(() => import("./pages/admin/AnalyticsHub"));
+const TagAndAdManager = lazy(() => import("./pages/admin/TagAndAdManager"));
 const AudienceManager = lazy(() => import("./pages/admin/AudienceManager"));
 const ServicesManager = lazy(() => import("./pages/admin/ServicesManager"));
 const InvoiceGenerator = lazy(() => import("./pages/admin/InvoiceGenerator"));
@@ -56,9 +57,13 @@ const PageLoader = () => (
 
 import { CommandPaletteProvider } from "./context/CommandPaletteContext";
 import API_BASE_URL from "./config";
+import { WidgetProvider } from "./context/WidgetContext";
+import { useGlobalTracker } from "./hooks/useGlobalTracker";
 
 // Tracking Helper Component - Hits the /api/track/view endpoint quietly on load
 const PageTracker = () => {
+  useGlobalTracker();
+
   useEffect(() => {
     fetch(`${API_BASE_URL}/api/track/view`, { method: "POST" }).catch(() => { });
   }, []);
@@ -70,83 +75,86 @@ const App = () => {
     <HelmetProvider>
       <CommandPaletteProvider>
         <AuthProvider>
-          <BrowserRouter>
-            <SmoothScroll>
-              <LazyMotion features={domAnimation} strict>
-                <div className='relative z-0 bg-primary w-full overflow-clip min-h-screen'>
-                  <ErrorBoundary>
-                    <Suspense fallback={<PageLoader />}>
-                      <Routes>
-                        {/* Public Routes */}
-                        <Route
-                          path='/'
-                          element={
-                            <>
-                              <PageTracker />
-                              {/* Dynamic SEO — reads live data from Admin → SEO Manager */}
-                              <PageSEO route="/" />
-                              {/* Navbar must be OUTSIDE any z-indexed wrapper */}
-                              <Navbar />
-                              <div className='bg-hero-pattern bg-cover bg-no-repeat bg-center'>
-                                <Hero />
-                              </div>
-                              <main>
-                                <About />
-                                <Experience />
-                                <Tech />
-                                <Works />
-                                <Feed />
-                                <div className='relative'>
-                                  <Contact />
-                                  <StarsCanvas />
+          <WidgetProvider>
+            <BrowserRouter>
+              <SmoothScroll>
+                <LazyMotion features={domAnimation} strict>
+                  <div className='relative z-0 bg-primary w-full overflow-clip min-h-screen'>
+                    <ErrorBoundary>
+                      <Suspense fallback={<PageLoader />}>
+                        <Routes>
+                          {/* Public Routes */}
+                          <Route
+                            path='/'
+                            element={
+                              <>
+                                <PageTracker />
+                                {/* Dynamic SEO — reads live data from Admin → SEO Manager */}
+                                <PageSEO route="/" />
+                                {/* Navbar must be OUTSIDE any z-indexed wrapper */}
+                                <Navbar />
+                                <div className='bg-hero-pattern bg-cover bg-no-repeat bg-center'>
+                                  <Hero />
                                 </div>
-                              </main>
-                              <Footer />
-                            </>
-                          }
-                        />
+                                <main>
+                                  <About />
+                                  <Experience />
+                                  <Tech />
+                                  <Works />
+                                  <Feed />
+                                  <div className='relative'>
+                                    <Contact />
+                                    <StarsCanvas />
+                                  </div>
+                                </main>
+                                <Footer />
+                              </>
+                            }
+                          />
 
-                        {/* Legal Routes */}
-                        <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-                        <Route path="/refund-policy" element={<RefundPolicy />} />
-                        <Route path="/terms-and-conditions" element={<TermsAndConditions />} />
+                          {/* Legal Routes */}
+                          <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+                          <Route path="/refund-policy" element={<RefundPolicy />} />
+                          <Route path="/terms-and-conditions" element={<TermsAndConditions />} />
 
-                        {/* Admin Routes */}
-                        <Route path="/blog" element={<Blogs />} />
-                        <Route path="/blog/:slug" element={<BlogDetails />} />
-                        <Route path="/testimonials" element={<TestimonialsPage />} />
-                        <Route path="/services" element={<ServicesPage />} />
-                        <Route path="/services/:id" element={<ServiceDetail />} />
-                        <Route path="/contact" element={<ContactPage />} />
+                          {/* Admin Routes */}
+                          <Route path="/blog" element={<Blogs />} />
+                          <Route path="/blog/:slug" element={<BlogDetails />} />
+                          <Route path="/testimonials" element={<TestimonialsPage />} />
+                          <Route path="/services" element={<ServicesPage />} />
+                          <Route path="/services/:id" element={<ServiceDetail />} />
+                          <Route path="/contact" element={<ContactPage />} />
 
-                        {/* Admin Routes - Hidden URL for security */}
-                        <Route path="/x7k9m2p4q/login" element={<Login />} />
+                          {/* Admin Routes - Hidden URL for security */}
+                          <Route path="/x7k9m2p4q/login" element={<Login />} />
 
-                        <Route path="/x7k9m2p4q" element={<ProtectedRoute />}>
-                          <Route index element={<Dashboard />} />
-                          <Route path="dashboard" element={<Dashboard />} />
-                          <Route path="projects" element={<ProjectDashboard />} />
-                          <Route path="experience" element={<ExperienceDashboard />} />
-                          <Route path="skills" element={<TechStackDashboard />} />
-                          <Route path="blogs" element={<ManageBlogs />} />
-                          <Route path="testimonials" element={<ManageTestimonials />} />
-                          <Route path="contacts" element={<ManageContacts />} />
-                          <Route path="seo" element={<SEOManager />} />
-                          <Route path="settings" element={<SettingsDashboard />} />
-                          <Route path="analytics" element={<AnalyticsHub />} />
-                          <Route path="subscribers" element={<AudienceManager />} />
-                          <Route path="services" element={<ServicesManager />} />
-                          <Route path="invoices" element={<InvoiceGenerator />} />
-                        </Route>
+                          <Route path="/x7k9m2p4q" element={<ProtectedRoute />}>
+                            <Route index element={<Dashboard />} />
+                            <Route path="dashboard" element={<Dashboard />} />
+                            <Route path="projects" element={<ProjectDashboard />} />
+                            <Route path="experience" element={<ExperienceDashboard />} />
+                            <Route path="skills" element={<TechStackDashboard />} />
+                            <Route path="blogs" element={<ManageBlogs />} />
+                            <Route path="testimonials" element={<ManageTestimonials />} />
+                            <Route path="contacts" element={<ManageContacts />} />
+                            <Route path="seo" element={<SEOManager />} />
+                            <Route path="settings" element={<SettingsDashboard />} />
+                            <Route path="analytics" element={<AnalyticsHub />} />
+                            <Route path="tags-ads" element={<TagAndAdManager />} />
+                            <Route path="subscribers" element={<AudienceManager />} />
+                            <Route path="services" element={<ServicesManager />} />
+                            <Route path="invoices" element={<InvoiceGenerator />} />
+                          </Route>
 
-                      </Routes>
-                    </Suspense>
-                  </ErrorBoundary>
-                </div>
-              </LazyMotion>
-              <Toaster position="bottom-right" richColors />
-            </SmoothScroll>
-          </BrowserRouter>
+                        </Routes>
+                      </Suspense>
+                    </ErrorBoundary>
+                  </div>
+                </LazyMotion>
+                <Toaster position="bottom-right" richColors />
+              </SmoothScroll>
+            </BrowserRouter>
+          </WidgetProvider>
         </AuthProvider>
       </CommandPaletteProvider>
     </HelmetProvider >
